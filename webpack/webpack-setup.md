@@ -32,7 +32,7 @@ This howto assumes file tree ~ like this
 └── webpack.config.js
 ```
 
-### Final `webpack.config`
+### Final `webpack.config.js`
 
 Looks something like this
 
@@ -234,7 +234,7 @@ module.exports = config;
   ...
   "scripts": {
     "build:dev": "npm run build:clean && webpack-dev-server --host=my.host.tld --port=3333 --history-api-fallback -d --inline --hot --content-base ./public/assets",
-    "build:prod": "npm run build:clean NODE_ENV=production webpack --progress",
+    "build:prod": "npm run build:clean && NODE_ENV=production webpack --progress",
     "build:clean": "rm -rf ./public/assets/*",
     "build": "npm run build:prod",
     ...
