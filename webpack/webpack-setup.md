@@ -4,15 +4,255 @@ This is a quick and unedited guide how to set up [webpack](https://webpack.githu
 Firstly it assumes plain SCSS, JavaScript ES5. Then drops in loaders/plugins for CSS and Javascript ES6/ES2015 (PostCSS, Babel, ESLint). 
 Finally it adds React.js in the mix.
 
+webpack 1.13.x-1.14.x assumed.
+
 Put together by @kroko.
 
 
-***
+## Result
+
+### File tree
+
+This howto assumes file tree ~ like this
+
+```
+├── package.json
+├── public
+│   ├── assets
+│   └── index.html
+├── src
+│   ├── fallbacks.scss
+│   ├── site.js
+│   ├── fonts
+│   ├── global.scss
+│   ├── mixins.scss
+│   ├── preflight.js
+│   ├── typography.scss
+│   └── variables.scss
+└── webpack.config.js
+```
+
+### Final `webpack.config`
+
+Looks something like this
+
+```javascript
+'use strict';
+
+const path = require('path');
+const webpack = require('webpack');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+
+const production = process.env.NODE_ENV === 'production';
+const testing = process.env.NODE_ENV === 'testing';
+
+console.log(production ? 'This is production config' : 'This is dev config');
+
+const webpackHtaccess = require('manage-htaccess');
+
+webpackHtaccess(
+  [
+    {
+      tag: 'DUMMY',
+      enabled: false
+    },
+    {
+      tag: 'WARPDEV',
+      enabled: !production,
+      attributes: {
+        port: 3334
+      }
+    }
+  ],
+  path.join(__dirname, 'public/.htaccess')
+);
+
+let config = {
+  // create source maps only on development or staging, not production
+  devtool: (production) ? null : 'inline-source-map',
+  target: testing ? 'node' : 'web',
+
+  context: __dirname,
+  entry: {
+    preflight: './src/preflight.js',
+    site: './src/site.js'
+  },
+  output: {
+    path: './public/assets', // path.join(__dirname, 'public/public')
+    filename: '[name].js',
+    publicPath: production ? '//ma.server.tld/public/assets/' : 'http://ma.server.tld/public/assets/'
+  },
+  resolve: {
+    modulesDirectories: [
+      'src',
+      'node_modules',
+      'bower_components'
+    ],
+    root: path.resolve('./src/')
+  }
+};
+
+config.module = {
+  // noParse: [
+  //   /preflight\.js$/
+  //   // path.join(__dirname, 'src/preflight.js')
+  // ],
+  preLoaders: [
+    {
+      test: /\.js$/,
+      exclude: [/node_modules/, /preflight\.js$/],
+      loader: 'eslint-loader'
+    }
+  ],
+  loaders: [
+    {
+      test: /\.js$/,
+      exclude: [/node_modules/, /preflight\.js$/],
+      loader: production ? 'babel-loader' : 'react-hot-loader!babel-loader'
+    },
+    {
+      test: /\.(scss)$/,
+      loader: production
+      ? ExtractTextPlugin.extract('css-loader!postcss-loader!resolve-url-loader?keepQuery!sass-loader?sourceMap') // postcss-loader!resolve-url-loader!
+      : 'style-loader!css-loader?sourceMap!postcss-loader!resolve-url-loader?keepQuery!sass-loader?sourceMap'
+    },
+    {
+      test: /\.(css)$/,
+      loader: production
+        ? ExtractTextPlugin.extract('css-loader?sourceMap!postcss-loader')
+        : 'style-loader!css-loader?sourceMap!postcss-loader'
+    },
+    {
+      test: /\.(png|jpg|gif)$/,
+      loader: production
+        ? 'url-loader?limit=10000!image-webpack-loader'
+        : 'url-loader?limit=10000'
+    },
+    {
+      test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+      loader: 'file-loader'
+    },
+    {
+      test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
+      loader: 'file-loader?mimetype=application/font-woff'
+    },
+    {
+      test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
+      loader: 'file-loader?mimetype=application/font-woff'
+    },
+    {
+      test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+      loader: 'file-loader?mimetype=application/x-font-ttf'
+    },
+    {
+      test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+      loader: 'file-loader?mimetype=image/svg+xml'
+    }
+  ]
+};
+
+// ############################################################################
+// Plugins
+// ############################################################################
+
+config.plugins = [];
+
+// define enviromental variable into script files
+config.plugins.push(new webpack.DefinePlugin({
+  __CLIENT__: true,
+  __SERVER__: false,
+  __DEVELOPMENT__: !production,
+  __DEVTOOLS__: !production,
+  'process.env': {
+    NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')  }
+}));
+
+if (production) {
+  config.plugins.push(new ExtractTextPlugin('[name].css', {
+    allChunks: true
+  }));
+}
+
+if (production) {
+  config.plugins.push(new webpack.optimize.UglifyJsPlugin({
+    sourceMap: false,
+    test: /\.js($|\?)/i,
+    compressor: {
+      drop_console: true, // do this always
+      // sequences: true,
+      // dead_code: true,
+      // drop_debugger: true,
+      // unused: true,
+      // join_vars: true,
+      warnings: false
+    }
+  }));
+}
+
+if (production) {
+  config.plugins.push(new webpack.optimize.DedupePlugin());
+}
+```
+
+
+### Final `package.json`
+
+```json
+{
+  ...
+  "scripts": {
+    "build:dev": "npm run build:clean && webpack-dev-server --host=my.host.tld --port=3333 --history-api-fallback -d --inline --hot --content-base ./public/assets",
+    "build:prod": "npm run build:clean NODE_ENV=production webpack --progress",
+    "build:clean": "rm -rf ./public/assets/*",
+    "build": "npm run build:prod",
+    ...
+  }
+  ...
+}
+```
+
+// ############################################################################
+// 3rd party loader and plugin configuration
+// ############################################################################
+
+config.eslint = {
+  quite: !production,
+  failOnWarning: false,
+  failOnError: production
+};
+
+// https://github.com/postcss/postcss-loader
+config.postcss = function () {
+  return [
+    require('autoprefixer')({
+      browsers: ['> 0.0001%'],
+      cascade: true,
+      remove: true
+    }),
+    require('css-mqpacker')(),
+    require('cssnano')({
+      discardComments: {
+        removeAll: true
+      },
+      zindex: false
+    })
+    /*
+    ["zindex", "normalizeUrl", "discardUnused", "mergeIdents", "reduceIdents"]
+    */
+  ];
+};
+
+module.exports = config;
+```
+
+---
+# How to get to the result?
+===
 
 ## Vanilla JavaScript and SCSS/CSS setup
 
 
-### Webpack so that we can simply build js file
+### Set up webpack so that we can simply build js file
 
 ```sh
 npm install webpack --save-dev
@@ -24,12 +264,13 @@ _webpack.config.js_
 'use strict';
 const path = require('path');
 let config = {
+ 
   context: __dirname,
   entry: {
     site: './src/site.js' // path.join(__dirname, 'src/site.js')
   },
   output: {
-    path: './public/public', // path.join(__dirname, 'public/public')
+    path: './public/assets', // path.join(__dirname, 'public/assets')
     filename: '[name].js'       
   },
   resolve: {
@@ -53,6 +294,12 @@ div.innerHTML = 'Hello JS';
 console.log('Hello JS!');
 ```
 
+Run webpack
+
+```sh
+webpack --progress
+```
+
 ### Webpack minimize JavaScript
 
 [webpack.optimize.UglifyJsPlugin](https://webpack.github.io/docs/list-of-plugins.html#uglifyjsplugin)
@@ -70,6 +317,13 @@ if (production) {
   }));
 }
 ```
+
+Run webpack, specify ENV
+
+```sh
+NODE_ENV=production webpack --progress
+```
+
 
 ### node-sass
 
@@ -111,7 +365,7 @@ let config = {
     site: path.join(__dirname, 'src/site.js')
   },
   output: {
-    path: path.join(__dirname, 'public/public'),
+    path: path.join(__dirname, 'public/assets'),
     filename: '[name].js'       
   }
   resolve: {
@@ -524,7 +778,7 @@ let config = {
     site: path.join(__dirname, 'src/site.js')
   },
   output: {
-    path: path.join(__dirname, 'public/public'),
+    path: path.join(__dirname, 'public/assets'),
     filename: '[name].js'       
   },
   resolve: {
