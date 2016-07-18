@@ -1,13 +1,22 @@
 # WEBPACK HOWTO
 
 This is a quick and unedited guide how to set up [webpack](https://webpack.github.io) build system in the moment you drop [gulp](http://gulpjs.com).  
-Firstly it assumes plain SCSS, JavaScript ES5. Then drops in loaders/plugins for CSS and Javascript ES6/ES2015 (PostCSS, Babel, ESLint). 
+Firstly it assumes plain SCSS, JavaScript ES5. Then drops in loaders/plugins for CSS and Javascript ES6/ES2015 (PostCSS, Babel, ESLint a.o.). 
 Finally it adds React.js in the mix.
 
 webpack 1.13.x-1.14.x assumed.
 
-Put together by @kroko.
+Put together by @kroko for the new collegues that see webpack for the first time ;)
 
+Please
+
+* clone it
+* read it
+* learn it
+* create new project in our server and test it step by step
+* there are things that are left out (especially server proxy config for `webpack-dev-server`, so ask if you don't see connection from some A to B)
+* watch out for errors (lot of stuff here is untested, as I don't have such not-real-world (barebone) code anywhere) as well as things that simply do not work anymore, because there is better way to do it (webpack gets updates, you know...)
+* add, commit and push fixes/changes/additions to this repo so that we can make this the ultimate webpack guide.
 
 ## Result
 
@@ -21,12 +30,15 @@ This howto assumes file tree ~ like this
 │   ├── assets
 │   └── index.html
 ├── src
-│   ├── fallbacks.scss
-│   ├── site.js
+│   ├── components
+│   ├── containers
 │   ├── fonts
+│   ├── hepers
+│   ├── images
 │   ├── global.scss
 │   ├── mixins.scss
 │   ├── preflight.js
+│   ├── site.js
 │   ├── typography.scss
 │   └── variables.scss
 └── webpack.config.js
