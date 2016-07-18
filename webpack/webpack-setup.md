@@ -192,24 +192,6 @@ if (production) {
 if (production) {
   config.plugins.push(new webpack.optimize.DedupePlugin());
 }
-```
-
-
-### Final `package.json`
-
-```json
-{
-  ...
-  "scripts": {
-    "build:dev": "npm run build:clean && webpack-dev-server --host=my.host.tld --port=3333 --history-api-fallback -d --inline --hot --content-base ./public/assets",
-    "build:prod": "npm run build:clean NODE_ENV=production webpack --progress",
-    "build:clean": "rm -rf ./public/assets/*",
-    "build": "npm run build:prod",
-    ...
-  }
-  ...
-}
-```
 
 // ############################################################################
 // 3rd party loader and plugin configuration
@@ -243,6 +225,22 @@ config.postcss = function () {
 };
 
 module.exports = config;
+```
+
+### Final `package.json`
+
+```json
+{
+  ...
+  "scripts": {
+    "build:dev": "npm run build:clean && webpack-dev-server --host=my.host.tld --port=3333 --history-api-fallback -d --inline --hot --content-base ./public/assets",
+    "build:prod": "npm run build:clean NODE_ENV=production webpack --progress",
+    "build:clean": "rm -rf ./public/assets/*",
+    "build": "npm run build:prod",
+    ...
+  }
+  ...
+}
 ```
 
 ---
