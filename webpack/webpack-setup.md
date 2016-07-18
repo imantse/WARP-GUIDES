@@ -32,6 +32,28 @@ This howto assumes file tree ~ like this
 └── webpack.config.js
 ```
 
+### Example `public/index.(html|php)`
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>My Title</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" type="text/css" href="./assets/site.css">
+  <script src="./assets/preflight.js"></script>
+</head>
+<body>
+  <div class="app"></div>
+  <script>
+    var dataReact = {};
+  </script>
+  <script async src="./assets/site.js"></script>
+</body>
+</html>
+```
+
 ### Final `webpack.config.js`
 
 Looks something like this
@@ -265,10 +287,10 @@ let config = {
  
   context: __dirname,
   entry: {
-    site: './src/site.js' // path.join(__dirname, 'src/site.js')
+    site: './src/site.js' // path.join(__dirname, 'src/site.js') if context not set
   },
   output: {
-    path: './public/assets', // path.join(__dirname, 'public/assets')
+    path: './public/assets', // path.join(__dirname, 'public/assets') if context not set
     filename: '[name].js'       
   },
   resolve: {
@@ -297,6 +319,18 @@ Run webpack
 ```sh
 webpack --progress
 ```
+
+Notice, that entry point __key names__ are being outputed to `./public/assets` as files. That is, you can change key name and real file name to whatever, i.e.,
+
+```javascript
+entry: {
+  myBundle: './src/whatever.js'
+},
+```
+
+and you will get `myBundle.js` in `./public/assets` (later you will see that CSS that is imported through JavaScript also will be named as the entry point name, i.e., `./public/assets/myBundle.css`).
+
+You can change this behaviour if output `filename: '[name].js'` is set to `filename: 'someConstantName.js'`. But don't do that, let your entry point key names (and you will have plenty of them in a real world scenario) dictate the output name.
 
 ### Webpack minimize JavaScript
 
