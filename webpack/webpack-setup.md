@@ -281,6 +281,15 @@ module.exports = config;
 # How to get to the result?
 ===
 
+
+## NPM INIT
+
+Start by initializing npm in a directory (or just use our `package.json` template)
+
+```sh
+npm init
+```
+
 ## Vanilla JavaScript and SCSS/CSS setup
 
 
@@ -402,8 +411,9 @@ npm install node-sass --save-dev
 
 [https://github.com/postcss/postcss-loader](https://github.com/postcss/postcss-loader)
 
-It moves every require("style.css") in entry chunks into a separate css output file. So your styles are no longer inlined into the javascript, but separate in a css bundle file (styles.css).
-[extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin)
+[https://github.com/webpack/extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin)
+
+[extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin) moves every `require('style.css')` within JavaScript in entry chunks into a separate css output file. So your styles are no longer inlined into the javascript, but separate in a css bundle file `entryPointKeyName.css`.
 
 ```sh
 npm install css-loader --save-dev
@@ -421,11 +431,12 @@ const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 let config = {
+  context: __dirname,
   entry: {
-    site: path.join(__dirname, 'src/site.js')
+    site: './src/site.js'
   },
   output: {
-    path: path.join(__dirname, 'public/assets'),
+    path: './public/assets',
     filename: '[name].js'       
   }
   resolve: {
@@ -448,8 +459,12 @@ config.module = {
 }
 
 config.plugins = [];
-
 if (production) {
+  config.plugins.push(new webpack.optimize.UglifyJsPlugin({
+    compressor: {
+      warnings: false
+    }
+  }));
   config.plugins.push(new ExtractTextPlugin('[name].css', {
     allChunks: true
   }));
@@ -457,6 +472,7 @@ if (production) {
 
 module.exports = config;
 ```
+
 _site.js_
 
 ```javascript
@@ -467,6 +483,14 @@ require('./global.scss');
 var div = document.querySelector('.app');
 div.innerHTML = 'Hello JS';
 console.log('Hello JS!');
+```
+
+_globals.scss_
+
+```scss
+.app {
+  background-color: red;
+}
 ```
 
 ### PostCSS plugins
