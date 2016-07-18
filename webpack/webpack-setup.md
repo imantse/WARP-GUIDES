@@ -351,8 +351,13 @@ You can change this behaviour if output `filename: '[name].js'` is set to `filen
 _webpack.config.js_
 
 ```javascript
+
+...
+
+// append to previous webpack.config.js
+
 const webpack = require('webpack');
-config.plugins = [];
+config.plugins = []; // add new key 'plugins' to config object, type array
 if (production) {
   config.plugins.push(new webpack.optimize.UglifyJsPlugin({
     compressor: {
@@ -368,6 +373,7 @@ Run webpack, specify ENV
 NODE_ENV=production webpack --progress
 ```
 
+Notice how JS gets minimized. And only if ENV is production.
 
 ### node-sass
 
