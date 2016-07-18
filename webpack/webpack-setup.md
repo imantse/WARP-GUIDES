@@ -354,6 +354,14 @@ _webpack.config.js_
 
 ...
 
+const production = process.env.NODE_ENV === 'production';
+
+...
+
+let config = {
+  ...
+};
+
 // append to previous webpack.config.js
 
 const webpack = require('webpack');
@@ -365,6 +373,8 @@ if (production) {
     }
   }));
 }
+
+module.exports = config;
 ```
 
 Run webpack, specify ENV
