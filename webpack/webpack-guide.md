@@ -1,14 +1,13 @@
-# WEBPACK HOWTO
+# WEBPACK GUIDE
 
-This is a quick and unedited guide how to set up [webpack](https://webpack.github.io) build system in the moment you drop [gulp](http://gulpjs.com).  
-Firstly it assumes plain SCSS, JavaScript ES5. Then drops in loaders/plugins for CSS and Javascript ES6/ES2015 (PostCSS, Babel, ESLint a.o.). 
-Finally it adds React.js in the mix.
+This is a quick, on demand and yet unedited guide how to set up [webpack](https://webpack.github.io) build system (in the moment you drop [gulp](http://gulpjs.com)) for the new potential collegues @WARP. 
+
+Firstly it uses simple SCSS, plain JavaScript ES5. Then drops in loaders/plugins for CSS and Javascript ES6/ES2015 (PostCSS + plugins, Babel, ESLint a.o.). Finally it adds React.js in the mix.
 
 webpack 1.13.x-1.14.x assumed.
 
-Put together by @kroko for the new collegues that see webpack for the first time ;)
-
-Please
+Put together by @kroko for the new collegues that see webpack for the first time.  
+While doing first edits I realised that also notes should be made for some basic npm stuff as the reality is - there are people who haven't used any bulding tools or even npm before (which isn't bad thing if you haven't coded JavaScript and/or do backend (PHP/ROR/...) stuff only). So this assumes absolute entry level knowledge in terms of packing code.
 
 * clone it
 * read it
@@ -19,52 +18,6 @@ Please
 * add, commit and push fixes/changes/additions to this repo so that we can make this the ultimate webpack guide.
 
 ## Result
-
-### File tree
-
-This howto assumes file tree ~ like this
-
-```
-├── package.json
-├── public
-│   ├── assets
-│   └── index.html
-├── src
-│   ├── components
-│   ├── containers
-│   ├── fonts
-│   ├── hepers
-│   ├── images
-│   ├── global.scss
-│   ├── mixins.scss
-│   ├── preflight.js
-│   ├── site.js
-│   ├── typography.scss
-│   └── variables.scss
-└── webpack.config.js
-```
-
-### Example `public/index.(html|php)`
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>My Title</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <link rel="stylesheet" type="text/css" href="./assets/site.css">
-  <script src="./assets/preflight.js"></script>
-</head>
-<body>
-  <div class="app"></div>
-  <script>
-    var dataReact = {};
-  </script>
-  <script async src="./assets/site.js"></script>
-</body>
-</html>
-```
 
 ### Final `webpack.config.js`
 
@@ -281,10 +234,51 @@ module.exports = config;
 # How to get to the result?
 ===
 
+## PREFLIGHT
 
-## NPM INIT
+### SET UP BASIC FILES & DIR STRUCTURE
 
-Start by initializing npm in a directory (or just use our `package.json` template)
+Crate master directory and set files tree up like this.
+
+```
+master-directory
+├── package.json
+├── public
+│   ├── assets
+│   └── index.html
+├── src
+│   ├── global.scss
+│   └── site.js
+└── webpack.config.js
+```
+
+*public/index.html*
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>My Title</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" type="text/css" href="./assets/site.css">
+  <script src="./assets/preflight.js"></script>
+</head>
+<body>
+  <div class="app"></div>
+  <script>
+    var dataReact = {};
+  </script>
+  <script async src="./assets/site.js"></script>
+</body>
+</html>
+```
+
+Leave `webpack.config.js`, `src/site.js` and `src/global.scss` empty for now. Either leave `package.json` out and generate it in the next step (`npm init`) or put our template `package.json` in place / [manually fill in](https://docs.npmjs.com/files/package.json) bare minimum yourself.
+
+### NPM INIT
+
+`cd` in master directory and initialize npm in it. Not needed if you have placed template or DIY `package.json` already there.
 
 ```sh
 npm init
@@ -292,12 +286,17 @@ npm init
 
 ## Vanilla JavaScript and SCSS/CSS setup
 
+*Note for [absolute beginners](https://www.youtube.com/watch?v=r8NZa9wYZ_U). All `npm` as well as `webpack` commands are executed while being `cd`-ed in this projects 'master directory'. You can do it while being somewhere else via `npm --prefix ${DIRNAME} install ${DIRNAME}` though. RTFM@NPM / ask.*
 
 ### Set up webpack so that we can simply build js file
+
+Install webpack and save to dev dependencies
 
 ```sh
 npm install webpack --save-dev
 ```
+
+Fill in webpack configuration file. Please always use ES6 in webpack config files.
 
 _webpack.config.js_
 
@@ -326,6 +325,8 @@ let config = {
 module.exports = config;
 ```
 
+Set up hello world javascript that selects `app` div in our html and puts some text in it. Note that we are using ES5 here.
+
 _site.js_
 
 ```javascript
@@ -341,7 +342,7 @@ Run webpack
 webpack --progress
 ```
 
-Notice, that entry point __key names__ are being outputed to `./public/assets` as files. That is, you can change key name and real file name to whatever, i.e.,
+Notice, that entry point __key names__ dictate what will be the outputed __filename__ in `./public/assets`. That is, you can change key name and real file name to whatever, i.e.,
 
 ```javascript
 entry: {
@@ -351,7 +352,10 @@ entry: {
 
 and you will get `myBundle.js` in `./public/assets` (later you will see that CSS that is imported through JavaScript also will be named as the entry point name, i.e., `./public/assets/myBundle.css`).
 
-You can change this behaviour if output `filename: '[name].js'` is set to `filename: 'someConstantName.js'`. But don't do that, let your entry point key names (and you will have plenty of them in a real world scenario) dictate the output name.
+You can change this behaviour if output `filename: '[name].js'` is set to `filename: 'someConstantName.js'`.  
+But don't do that, let your entry point key name define the output name.  
+Think of what would happen if you had multiple entry points (just like in a real world scenario). How would you manage filenames then if output file would not somehow depend on entry point, but would be always constant?  
+And yeah, we will not dicsuss filename based versioning stuff in this tut.
 
 ### Webpack minimize JavaScript
 
@@ -374,7 +378,7 @@ let config = {
 // append to previous webpack.config.js
 
 const webpack = require('webpack');
-config.plugins = []; // add new key 'plugins' to config object, type array
+config.plugins = []; // add new key 'plugins' to config object, array
 if (production) {
   config.plugins.push(new webpack.optimize.UglifyJsPlugin({
     compressor: {
@@ -386,13 +390,13 @@ if (production) {
 module.exports = config;
 ```
 
-Run webpack, specify ENV
+Run webpack, specify `NODE_ENV` value
 
 ```sh
 NODE_ENV=production webpack --progress
 ```
 
-Notice how JS gets minimized. And only if ENV is production.
+Notice how JS gets minimized. And only if env var `NODE_ENV` is set to `production`.
 
 ### node-sass
 
