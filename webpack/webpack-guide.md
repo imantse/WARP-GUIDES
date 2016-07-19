@@ -17,7 +17,7 @@ While doing first edits I realised that also notes should be made for some basic
 * watch out for errors (lot of stuff here is untested, as I don't have such not-real-world (barebone) code anywhere) as well as things that simply do not work anymore, because there is better way to do it (webpack gets updates, you know...)
 * add, commit and push fixes/changes/additions to this repo so that we can make this the ultimate webpack guide.
 
-
+---
 # PREFLIGHT
 ---
 
@@ -62,7 +62,7 @@ master-directory
 
 Leave `webpack.config.js`, `src/site.js` and `src/global.scss` empty for now. Either leave `package.json` out and generate it in the next step (`npm init`) or put our template `package.json` in place / [manually fill in](https://docs.npmjs.com/files/package.json) bare minimum yourself.
 
-### NPM INIT
+## NPM INIT
 
 `cd` in master directory and initialise npm in it. Not needed if you have placed template or DIY `package.json` already there.
 
@@ -70,6 +70,7 @@ Leave `webpack.config.js`, `src/site.js` and `src/global.scss` empty for now. Ei
 npm init
 ```
 
+---
 # Vanilla JavaScript and SCSS/CSS setup
 ---
 
