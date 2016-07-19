@@ -587,6 +587,22 @@ webpack --progress
 
 SCSS is compiled and spit out in a file under `public/assets` named the same as the entry point key of the JavaScript from which SCSS was included in the first place.
 
+### Note about loader names
+
+Whenever you use loaders
+
+```javascript
+('style-loader', 'css-loader?sourceMap!sass-loader?sourceMap')
+```
+
+you can omit `-loader` part
+
+```javascript
+('style', 'css?sourceMap!sass?sourceMap')
+```
+
+But IMHO it's better to be explicit as it helps finding, batch replacing things.
+
 ### PostCSS plugins
 
 One does not simply... don't use PostCSS. [Use plugins!](https://cdn.meme.am/instances/500x/68322636.jpg)
@@ -594,7 +610,7 @@ One does not simply... don't use PostCSS. [Use plugins!](https://cdn.meme.am/ins
 Loader  
 [postcss-loader](https://github.com/postcss/postcss-loader)  
 
-Basic plugins and their documentation
+Basic plugins and their documentation  
 [autoprefixer](https://github.com/postcss/autoprefixer)  
 [node-css-mqpacker](https://github.com/hail2u/node-css-mqpacker)  
 [cssnano](https://github.com/ben-eb/cssnano)
@@ -734,7 +750,134 @@ In real world I tend to use
 devtool: (production) ? null : 'inline-source-map',
 ```
 
-which would enable source maps both for development as well as staging.
+which would enable source maps both for development and staging.
+
+
+### Webpack file-loader & url-loader & resolve-url-loader
+
+Now let us add some images to source. Make `my-small-image.jpg` few KB and `my-large-image.jpg` above  1 MB.
+
+`tree -a -I 'node_modules' .`
+
+```
+├── package.json
+├── public
+│   ├── assets
+│   │   ├── preflight.js
+│   │   ├── site.css
+│   │   └── site.js
+│   ├── .htaccess
+│   └── index.html
+├── src
+│   ├── global.scss
+│   ├── images
+│   │   ├── my-large-image.jpg
+│   │   └── my-small-image.jpg
+│   ├── preflight.js
+│   └── site.js
+└── webpack.config.js
+```
+
+Loaders  
+[file-loader](https://github.com/webpack/file-loader)  
+[url-loader](https://github.com/webpack/url-loader)  
+[resolve-url-loader](https://github.com/bholloway/resolve-url-loader)  
+
+`url-loader` works like the file loader, but can return a Data Url if the file is smaller than a limit.  
+`resolve-url-loader` is needed because we set file path in `url()` relative to the SCSS file we are working in, however webpack tries to resolve from entry point.
+
+```sh
+npm i -D file-loader
+npm i -D url-loader
+npm install resolve-url-loader --save-dev
+```
+
+Add image to our SCSS
+
+_site.scss_
+
+```scss
+@import "~normalize.css";
+body {
+  background-image: url('./images/my-large-image.jpg');
+}
+.app {
+  background-color: red;
+  display: flex;
+  transform: translateY(50px);
+  height: 100px;
+  background-image: url('./images/my-small-image.jpg');
+}
+```
+
+Add loader in the pipe and loader rule to handle this file type (don't be suprised about not including svg, later on that)
+
+_webpack.config.js_
+
+```javascript
+
+...
+      loader: ExtractTextPlugin.extract('style-loader', 'css-loader?sourceMap!postcss-loader!resolve-url-loader?keepQuery!sass-loader?sourceMap')
+...
+    {
+      test: /\.(png|jpg|jpeg|gif)$/,
+      loader: 'url-loader?limit=10000'
+    }
+...
+```
+
+Run webpack and inspect `public/assets/` directory and `public/assets/site.css`
+
+```sh
+rm -rf public/assets/** && webpack --progress
+```
+
+Notice how larger image is outputted as file while smaller image is inlined `url(data:image/jpeg;base64,...);` in CSS. Just as we want it.
+
+### Webpack image-webpack-loader
+
+But we can do better. For those images that are outputted as files, let us minify them.  
+_Minify PNG, JP(E)G, GIF and SVG images with [imagemin](https://github.com/imagemin/imagemin)._
+
+Loader  
+[image-webpack-loader](https://github.com/tcoopman/image-webpack-loader)  
+
+```sh
+npm i -D image-webpack-loader
+```
+_webpack.config.js_
+
+```javascript
+...
+    {
+      test: /\.(png|jpg|jpeg|gif)$/,
+      loader: 'url-loader?limit=10000!image-webpack-loader'
+    }
+...
+```
+
+Run webpack and inspect `public/assets/` directory, how outputted image size differs from source.
+
+```sh
+rm -rf public/assets/** && webpack --progress
+```
+
+This process is expensive. In development we do not care about filesizes as we live within gigabit ethernet, so set it to 
+
+```javascript
+...
+    {
+      test: /\.(png|jpg|jpeg|gif)$/,
+      loader: production
+        ? 'url-loader?limit=10000!image-webpack-loader'
+        : 'url-loader?limit=10000'
+    }
+...
+```
+
+-----
+###### REVISED TILL HERE
+
 
 ### Webpack webpack-dev-server
 
@@ -751,52 +894,6 @@ We have alreaddy installed this. Adds CSS to the DOM by injecting a `<style>` ta
 
 ```sh
 npm i -D style-loader
-```
-
-### Webpack file-loader
-
-[https://github.com/webpack/file-loader](https://github.com/webpack/file-loader)
-
-```sh
-npm i -D file-loader
-```
-
-### Webpack url-loader
-
-The url loader works like the file loader, but can return a Data Url if the file is smaller than a limit.  
-[https://github.com/webpack/url-loader](https://github.com/webpack/url-loader)
-
-```sh
-npm i -D url-loader
-```
-_webpack.config.js_
-
-```javascript
-    {
-      test: /\.(png|jpg|gif)$/,
-      loader: production
-        ? 'url-loader?limit=10000'
-        : 'url-loader?limit=10000?'
-    },
-```
-
-### Webpack image-webpack-loader
-
-Minify PNG, JPEG, GIF and SVG images with imagemin.  
-[https://github.com/imagemin/imagemin](https://github.com/imagemin/imagemin)
-
-```sh
-npm i -D image-webpack-loader
-```
-_webpack.config.js_
-
-```javascript
-    {
-      test: /\.(png|jpg|gif)$/,
-      loader: production
-        ? 'url-loader?limit=10000!image-webpack'
-        : 'url-loader?limit=10000?'
-    },
 ```
 
 ### manage-htaccess
@@ -844,24 +941,7 @@ loaders: [
 ]
 ```
 
-### Webpack Resolve URL Loader
 
-This is needed when include paths from CSS can not be resolved. This is because we write `ulr()` inside SCSS relative to the SCSS file, however Webpack tries tu resolve from entry point (`site.scss`).  
-`@font-face` `url()` is obvious example.
-
-```sh
-npm install resolve-url-loader --save-dev
-```
-_webpack.config.js_
-
-```javascript
-    {
-      test: /\.(scss)$/,
-      loader: production
-      ? ExtractTextPlugin.extract('css-loader?sourceMap!postcss-loader!resolve-url-loader?keepQuery!sass-loader?sourceMap')
-      : 'style-loader!css-loader?sourceMap!postcss-loader!resolve-url-loader?keepQuery!sass-loader?sourceMap'
-    },
-```
 
 ### Webpack GLSL loader
 
