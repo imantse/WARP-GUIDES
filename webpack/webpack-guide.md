@@ -1,13 +1,13 @@
 # WEBPACK GUIDE
 
-This is a quick, on demand and yet unedited guide how to set up [webpack](https://webpack.github.io) build system (in the moment you drop [gulp](http://gulpjs.com)) for the new potential collegues @WARP. 
+This is a quick, on demand and yet unedited/untested guide how to set up [webpack](https://webpack.github.io) build system (in the moment you drop [gulp](http://gulpjs.com)).
 
 Firstly it uses simple SCSS, plain JavaScript ES5. Then drops in loaders/plugins for CSS and Javascript ES6/ES2015 (PostCSS + plugins, Babel, ESLint a.o.). Finally it adds React.js in the mix.
 
 webpack 1.13.x-1.14.x assumed.
 
-Put together by @kroko for the new collegues that see webpack for the first time.  
-While doing first edits I realised that also notes should be made for some basic npm stuff as the reality is - there are people who haven't used any bulding tools or even npm before (which isn't bad thing if you haven't coded JavaScript and/or do backend (PHP/ROR/...) stuff only). So this assumes absolute entry level knowledge in terms of packing code.
+Put together by @kroko for the new colleagues that see webpack for the first time.  
+While doing first edits I realised that also notes should be made for some basic npm stuff as the reality is - there are people who haven't used any building tools or even npm before (which isn't bad thing if you haven't coded JavaScript and/or do backend (PHP/ROR/...) stuff only). So this assumes absolute entry level knowledge in terms of packing code.
 
 * clone it
 * read it
@@ -238,16 +238,17 @@ module.exports = config;
 
 ### SET UP BASIC FILES & DIR STRUCTURE
 
-Crate master directory and set files tree up like this.
+Crate master directory and set files tree up like this (`tree -a .`). Leave all files empty, we will fill them up step by step.
 
 ```
 master-directory
 ├── package.json
 ├── public
-│   ├── assets
+│   ├── .htaccess
 │   └── index.html
 ├── src
 │   ├── global.scss
+│   ├── preflight.js
 │   └── site.js
 └── webpack.config.js
 ```
@@ -256,13 +257,13 @@ master-directory
 
 ```html
 <!DOCTYPE html>
-<html>
+<html class="noscript">
 <head>
   <meta charset="utf-8">
   <title>My Title</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <link rel="stylesheet" type="text/css" href="./assets/site.css">
   <script src="./assets/preflight.js"></script>
+  <link rel="stylesheet" type="text/css" href="./assets/site.css">
 </head>
 <body>
   <div class="app"></div>
@@ -278,7 +279,7 @@ Leave `webpack.config.js`, `src/site.js` and `src/global.scss` empty for now. Ei
 
 ### NPM INIT
 
-`cd` in master directory and initialize npm in it. Not needed if you have placed template or DIY `package.json` already there.
+`cd` in master directory and initialise npm in it. Not needed if you have placed template or DIY `package.json` already there.
 
 ```sh
 npm init
@@ -342,7 +343,7 @@ Run webpack
 webpack --progress
 ```
 
-Notice, that entry point __key names__ dictate what will be the outputed __filename__ in `./public/assets`. That is, you can change key name and real file name to whatever, i.e.,
+Notice, that entry point __key names__ dictate what will be the outputted __filename__ in `./public/assets`. That is, you can change key name and real file name to whatever, i.e.,
 
 ```javascript
 entry: {
@@ -355,27 +356,92 @@ and you will get `myBundle.js` in `./public/assets` (later you will see that CSS
 You can change this behaviour if output `filename: '[name].js'` is set to `filename: 'someConstantName.js'`.  
 But don't do that, let your entry point key name define the output name.  
 Think of what would happen if you had multiple entry points (just like in a real world scenario). How would you manage filenames then if output file would not somehow depend on entry point, but would be always constant?  
-And yeah, we will not dicsuss filename based versioning stuff in this tut.
+And yeah, we will not discuss filename based versioning stuff in this tut.
 
-### Webpack minimize JavaScript
 
+### Build multiple js files
+
+Our template has `preflight.js` in the head which is not present after building in previous step (and we get `404`). So let us add new endpoint for preflight.
+
+_preflight.js_
+
+```javascript
+// change noscript to script in html tag
+document.documentElement.className = document.documentElement.className.replace(/\bnoscript\b/, 'script');
+```
+
+_webpack.config.js_
+
+```javascript
+'use strict';
+const path = require('path');
+let config = {
+ 
+  context: __dirname,
+  entry: {
+    site: './src/site.js',
+    preflight: './src/preflight.js'
+  },
+  output: {
+    path: './public/assets',
+    filename: '[name].js'       
+  },
+  resolve: {
+    modulesDirectories: [
+      'src',
+      'node_modules',
+      'bower_components'
+    ],
+    root: path.resolve('./src/')
+  }
+}
+module.exports = config;
+```
+
+Run webpack
+
+```sh
+webpack --progress
+```
+
+Inspect. The file is in `public/assets` directory and it does its job.
+
+
+### Webpack minimise JavaScript
+
+For JavaScript minimisation we can use webpack built in plugin which actually uses [UglifyJS2](https://github.com/mishoo/UglifyJS2) under the hood.
+
+Plugin documentation  
 [webpack.optimize.UglifyJsPlugin](https://webpack.github.io/docs/list-of-plugins.html#uglifyjsplugin)
 
 _webpack.config.js_
 
 ```javascript
-
-...
+'use strict';
+const path = require('path');
 
 const production = process.env.NODE_ENV === 'production';
 
-...
-
 let config = {
-  ...
-};
-
-// append to previous webpack.config.js
+ 
+  context: __dirname,
+  entry: {
+    site: './src/site.js',
+    preflight: './src/preflight.js'
+  },
+  output: {
+    path: './public/assets',
+    filename: '[name].js'       
+  },
+  resolve: {
+    modulesDirectories: [
+      'src',
+      'node_modules',
+      'bower_components'
+    ],
+    root: path.resolve('./src/')
+  }
+}
 
 const webpack = require('webpack');
 config.plugins = []; // add new key 'plugins' to config object, array
@@ -396,12 +462,11 @@ Run webpack, specify `NODE_ENV` value
 NODE_ENV=production webpack --progress
 ```
 
-Notice how JS gets minimized. And only if env var `NODE_ENV` is set to `production`.
+Inspect how `assets/site.js` changes based on whether `NODE_ENV` is set to `production`.
 
 ### node-sass
 
-Node-sass is a library that provides binding for Node.js to LibSass, the C version of the popular stylesheet preprocessor, Sass.  
-[https://github.com/sass/node-sass](https://github.com/sass/node-sass)
+For to compile SCSS to CSS we will be using [Node-sass](https://github.com/sass/node-sass). It _is a library that provides binding for Node.js to LibSass, the C version of the popular stylesheet preprocessor, Sass_.  
 
 ```sh
 npm install node-sass --save-dev
@@ -409,20 +474,22 @@ npm install node-sass --save-dev
 
 ### Webpack CSS loaders so that CSS/SCSS can be required in js
 
-[https://github.com/webpack/css-loader](https://github.com/webpack/css-loader)
+So we need a bunch of webpack loaders for this to work and to get that `site.css` working that is ref'ed in the `<head>`.
 
-[https://github.com/jtangelder/sass-loader](https://github.com/jtangelder/sass-loader)
+Loaders and their documentation  
+[https://github.com/webpack/style-loader](https://github.com/webpack/style-loader)  
+[https://github.com/webpack/css-loader](https://github.com/webpack/css-loader)  
+[https://github.com/jtangelder/sass-loader](https://github.com/jtangelder/sass-loader)  
 
-[https://github.com/postcss/postcss-loader](https://github.com/postcss/postcss-loader)
+Plugin and its documentation  
+[https://github.com/webpack/extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin)  
 
-[https://github.com/webpack/extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin)
-
-[extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin) moves every `require('style.css')` within JavaScript in entry chunks into a separate css output file. So your styles are no longer inlined into the javascript, but separate in a css bundle file `entryPointKeyName.css`.
+[extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin) moves every `require('style.css')` within JavaScript that is spilled out in chunks into a separate css output file. So your styles are not inlined into the JavaScript (which would be hind of default webpack way without this plugin), but separate in a css bundle file `entryPointKeyName.css`.
 
 ```sh
+npm install style-loader --save-dev
 npm install css-loader --save-dev
 npm install sass-loader --save-dev
-npm install postcss-loader --save-dev
 npm install extract-text-webpack-plugin --save-dev
 ```
 
@@ -430,19 +497,26 @@ _webpack.config.js_
 
 ```javascript
 'use strict';
-
 const path = require('path');
+const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
+const production = process.env.NODE_ENV === 'production';
+
+// ----------------
+// BASE CONFIG
+
 let config = {
+ 
   context: __dirname,
   entry: {
-    site: './src/site.js'
+    site: './src/site.js',
+    preflight: './src/preflight.js'
   },
   output: {
     path: './public/assets',
     filename: '[name].js'       
-  }
+  },
   resolve: {
     modulesDirectories: [
       'src',
@@ -453,24 +527,32 @@ let config = {
   }
 }
 
+// ----------------
+// MODULES
+
 config.module = {
   loaders: [
-      {
-        test: /\.(scss)$/,
-        loader: ExtractTextPlugin.extract('css-loader?sourceMap!postcss-loader!sass-loader?sourceMap')
-      }
+    {
+      test: /\.(scss)$/,
+      loader: ExtractTextPlugin.extract('style-loader', 'css-loader?sourceMap!sass-loader?sourceMap')
+    }
   ]
 }
 
+// ----------------
+// PLUGINS
+
 config.plugins = [];
+
+config.plugins.push(new ExtractTextPlugin('[name].css', {
+  allChunks: true
+}));
+
 if (production) {
   config.plugins.push(new webpack.optimize.UglifyJsPlugin({
     compressor: {
       warnings: false
     }
-  }));
-  config.plugins.push(new ExtractTextPlugin('[name].css', {
-    allChunks: true
   }));
 }
 
@@ -489,7 +571,7 @@ div.innerHTML = 'Hello JS';
 console.log('Hello JS!');
 ```
 
-_globals.scss_
+_global.scss_
 
 ```scss
 .app {
@@ -497,54 +579,145 @@ _globals.scss_
 }
 ```
 
+Run webpack and inspect `public/assets/site.css`
+
+```sh
+webpack --progress
+```
+
+SCSS is compiled and spit out in a file under `public/assets` named the same as the entry point key of the JavaScript from which SCSS was included in the first place.
+
 ### PostCSS plugins
 
+One does not simply... don't use PostCSS. [Use plugins!](https://cdn.meme.am/instances/500x/68322636.jpg)
+
+Loader  
+[postcss-loader](https://github.com/postcss/postcss-loader)  
+
+Basic plugins and their documentation
 [autoprefixer](https://github.com/postcss/autoprefixer)  
 [node-css-mqpacker](https://github.com/hail2u/node-css-mqpacker)  
 [cssnano](https://github.com/ben-eb/cssnano)
 
 ```sh
+npm install postcss-loader --save-dev
 npm install css-mqpacker --save-dev
 npm install autoprefixer --save-dev
 npm install cssnano --save-dev
 ```
+
+First add PostCSS plugin configuration. Do some sick backwards browser support for a test.  
+Then also add `postcss-loader` in the loaders pipe.
+
 _webpack.config.js_
 
 ```javascript
+...
+      loader: ExtractTextPlugin.extract('style-loader', 'css-loader?sourceMap!postcss-loader!sass-loader?sourceMap')
+...
+
 config.postcss = function () {
-  return [
+  let postPluginConf = [];
+  postPluginConf.push(
     require('autoprefixer')({
       browsers: ['> 0.0001%'],
       cascade: true,
       remove: true
-    }),
-    require('css-mqpacker')(),
-    require('cssnano')({
-      discardComments: {
-        removeAll: true
-      }
     })
-  ];
+  );
+  postPluginConf.push(
+    require('css-mqpacker')()
+  );
+  // we minimize CSS always as we have source maps, but for this example let us do conditional
+  if (production) {
+    postPluginConf.push(
+      require('cssnano')({discardComments: {removeAll: true}, zindex: false})
+    );
+  }
+  return postPluginConf;
 };
+...
+
 ```
 
-Alternatives  
-[https://github.com/jonathantneal/postcss-time-machine](https://github.com/jonathantneal/postcss-time-machine)
+_global.scss_
+
+```scss
+.app {
+  background-color: red;
+  display: flex;
+  transform: translateY(50px);
+}
+```
+
+Run webpack and inspect `public/assets/site.css`
+
+```sh
+webpack --progress
+```
 
 ### normalize.css
 
-[https://necolas.github.io/normalize.css/](https://necolas.github.io/normalize.css/)
+Always use [Normalize.css](https://necolas.github.io/normalize.css/). Although our *cut the mustard* script does fallback page for anything below IE11 this fallback has to look O.K., so use Normalize.css that supports IE8+ (which is 4.x as of now.)
 
 ```sh
 npm install normalize.css --save-dev
 ```
+
+We add it as a module, so prefix it `~`. So now you know what `resolve: { modulesDirectories: [] }` in webpack stands for. Search paths!
+
+Add to our SCSS
+
 _site.scss_
 
 ```scss
 @import "~normalize.css";
+.app {
+  background-color: red;
+  display: flex;
+  transform: translateY(50px);
+}
+```
+
+Run webpack and inspect `public/assets/site.css`
+
+```sh
+webpack --progress
 ```
 
 ### Webpack CSS source maps
+
+As you can see we pass `?sourceMap` to our loaders (currently we do not have any loaders for JavaScript). But where are the source maps? Use webpack [devtool](https://webpack.github.io/docs/configuration.html#devtool).
+
+First try
+
+_webpack.config.js_
+
+```javascript
+config = {
+  devtool: 'inline-source-map',
+  ...
+}
+```
+
+Run webpack and inspect `public/assets/site.js` and `public/assets/site.css`
+
+```sh
+webpack --progress
+```
+
+Now try
+
+```javascript
+config = {
+  devtool: 'source-map',
+  ...
+}
+```
+
+Run webpack and inspect `public/assets/` directory.
+
+Finally set for now to always generate source maps, as we are testing things here
 
 _webpack.config.js_
 
@@ -554,6 +727,14 @@ config = {
   ...
 }
 ```
+
+In real world I tend to use
+
+```javascript
+devtool: (production) ? null : 'inline-source-map',
+```
+
+which would enable source maps both for development as well as staging.
 
 ### Webpack webpack-dev-server
 
@@ -565,7 +746,7 @@ npm i -D webpack-dev-server
 
 ### Webpack style-loader
 
-Adds CSS to the DOM by injecting a `<style>` tag.  Use with webpack-dev-server.
+We have alreaddy installed this. Adds CSS to the DOM by injecting a `<style>` tag. Use with webpack-dev-server.
 [https://github.com/webpack/style-loader](https://github.com/webpack/style-loader)
 
 ```sh
