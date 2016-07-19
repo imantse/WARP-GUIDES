@@ -17,226 +17,11 @@ While doing first edits I realised that also notes should be made for some basic
 * watch out for errors (lot of stuff here is untested, as I don't have such not-real-world (barebone) code anywhere) as well as things that simply do not work anymore, because there is better way to do it (webpack gets updates, you know...)
 * add, commit and push fixes/changes/additions to this repo so that we can make this the ultimate webpack guide.
 
-## Result
 
-### Final `webpack.config.js`
-
-Looks something like this
-
-```javascript
-'use strict';
-
-const path = require('path');
-const webpack = require('webpack');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
-
-const production = process.env.NODE_ENV === 'production';
-const testing = process.env.NODE_ENV === 'testing';
-
-console.log(production ? 'This is production config' : 'This is dev config');
-
-const webpackHtaccess = require('manage-htaccess');
-
-webpackHtaccess(
-  [
-    {
-      tag: 'DUMMY',
-      enabled: false
-    },
-    {
-      tag: 'WARPDEV',
-      enabled: !production,
-      attributes: {
-        port: 3334
-      }
-    }
-  ],
-  path.join(__dirname, 'public/.htaccess')
-);
-
-let config = {
-  // create source maps only on development or staging, not production
-  devtool: (production) ? null : 'inline-source-map',
-  target: testing ? 'node' : 'web',
-
-  context: __dirname,
-  entry: {
-    preflight: './src/preflight.js',
-    site: './src/site.js'
-  },
-  output: {
-    path: './public/assets', // path.join(__dirname, 'public/public')
-    filename: '[name].js',
-    publicPath: production ? '//ma.server.tld/public/assets/' : 'http://ma.server.tld/public/assets/'
-  },
-  resolve: {
-    modulesDirectories: [
-      'src',
-      'node_modules',
-      'bower_components'
-    ],
-    root: path.resolve('./src/')
-  }
-};
-
-config.module = {
-  // noParse: [
-  //   /preflight\.js$/
-  //   // path.join(__dirname, 'src/preflight.js')
-  // ],
-  preLoaders: [
-    {
-      test: /\.js$/,
-      exclude: [/node_modules/, /preflight\.js$/],
-      loader: 'eslint-loader'
-    }
-  ],
-  loaders: [
-    {
-      test: /\.js$/,
-      exclude: [/node_modules/, /preflight\.js$/],
-      loader: production ? 'babel-loader' : 'react-hot-loader!babel-loader'
-    },
-    {
-      test: /\.(scss)$/,
-      loader: production
-      ? ExtractTextPlugin.extract('css-loader!postcss-loader!resolve-url-loader?keepQuery!sass-loader?sourceMap') // postcss-loader!resolve-url-loader!
-      : 'style-loader!css-loader?sourceMap!postcss-loader!resolve-url-loader?keepQuery!sass-loader?sourceMap'
-    },
-    {
-      test: /\.(css)$/,
-      loader: production
-        ? ExtractTextPlugin.extract('css-loader?sourceMap!postcss-loader')
-        : 'style-loader!css-loader?sourceMap!postcss-loader'
-    },
-    {
-      test: /\.(png|jpg|gif)$/,
-      loader: production
-        ? 'url-loader?limit=10000!image-webpack-loader'
-        : 'url-loader?limit=10000'
-    },
-    {
-      test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-      loader: 'file-loader'
-    },
-    {
-      test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-      loader: 'file-loader?mimetype=application/font-woff'
-    },
-    {
-      test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-      loader: 'file-loader?mimetype=application/font-woff'
-    },
-    {
-      test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-      loader: 'file-loader?mimetype=application/x-font-ttf'
-    },
-    {
-      test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-      loader: 'file-loader?mimetype=image/svg+xml'
-    }
-  ]
-};
-
-// ############################################################################
-// Plugins
-// ############################################################################
-
-config.plugins = [];
-
-// define enviromental variable into script files
-config.plugins.push(new webpack.DefinePlugin({
-  __CLIENT__: true,
-  __SERVER__: false,
-  __DEVELOPMENT__: !production,
-  __DEVTOOLS__: !production,
-  'process.env': {
-    NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')  }
-}));
-
-if (production) {
-  config.plugins.push(new ExtractTextPlugin('[name].css', {
-    allChunks: true
-  }));
-}
-
-if (production) {
-  config.plugins.push(new webpack.optimize.UglifyJsPlugin({
-    sourceMap: false,
-    test: /\.js($|\?)/i,
-    compressor: {
-      drop_console: true, // do this always
-      // sequences: true,
-      // dead_code: true,
-      // drop_debugger: true,
-      // unused: true,
-      // join_vars: true,
-      warnings: false
-    }
-  }));
-}
-
-if (production) {
-  config.plugins.push(new webpack.optimize.DedupePlugin());
-}
-
-// ############################################################################
-// 3rd party loader and plugin configuration
-// ############################################################################
-
-config.eslint = {
-  quite: !production,
-  failOnWarning: false,
-  failOnError: production
-};
-
-// https://github.com/postcss/postcss-loader
-config.postcss = function () {
-  return [
-    require('autoprefixer')({
-      browsers: ['> 0.0001%'],
-      cascade: true,
-      remove: true
-    }),
-    require('css-mqpacker')(),
-    require('cssnano')({
-      discardComments: {
-        removeAll: true
-      },
-      zindex: false
-    })
-    /*
-    ["zindex", "normalizeUrl", "discardUnused", "mergeIdents", "reduceIdents"]
-    */
-  ];
-};
-
-module.exports = config;
-```
-
-### Final `package.json`
-
-```json
-{
-  ...
-  "scripts": {
-    "build:dev": "npm run build:clean && webpack-dev-server --host=my.host.tld --port=3333 --history-api-fallback -d --inline --hot --content-base ./public/assets",
-    "build:prod": "npm run build:clean && NODE_ENV=production webpack --progress",
-    "build:clean": "rm -rf ./public/assets/*",
-    "build": "npm run build:prod",
-    ...
-  }
-  ...
-}
-```
-
+# PREFLIGHT
 ---
-# How to get to the result?
-===
 
-## PREFLIGHT
-
-### SET UP BASIC FILES & DIR STRUCTURE
+## SET UP BASIC FILES & DIR STRUCTURE
 
 Crate master directory and set files tree up like this (`tree -a .`). Leave all files empty, we will fill them up step by step.
 
@@ -285,11 +70,12 @@ Leave `webpack.config.js`, `src/site.js` and `src/global.scss` empty for now. Ei
 npm init
 ```
 
-## Vanilla JavaScript and SCSS/CSS setup
+# Vanilla JavaScript and SCSS/CSS setup
+---
 
 *Note for [absolute beginners](https://www.youtube.com/watch?v=r8NZa9wYZ_U). All `npm` as well as `webpack` commands are executed while being `cd`-ed in this projects 'master directory'. You can do it while being somewhere else via `npm --prefix ${DIRNAME} install ${DIRNAME}` though. RTFM@NPM / ask.*
 
-### Set up webpack so that we can simply build js file
+## Set up webpack so that we can simply build js file
 
 Install webpack and save to dev dependencies
 
@@ -359,7 +145,7 @@ Think of what would happen if you had multiple entry points (just like in a real
 And yeah, we will not discuss filename based versioning stuff in this tut.
 
 
-### Build multiple js files
+## Build multiple js files
 
 Our template has `preflight.js` in the head which is not present after building in previous step (and we get `404`). So let us add new endpoint for preflight.
 
@@ -407,7 +193,7 @@ webpack --progress
 Inspect. The file is in `public/assets` directory and it does its job.
 
 
-### Webpack minimise JavaScript
+## Webpack minimise JavaScript
 
 For JavaScript minimisation we can use webpack built in plugin which actually uses [UglifyJS2](https://github.com/mishoo/UglifyJS2) under the hood.
 
@@ -464,6 +250,9 @@ NODE_ENV=production webpack --progress
 
 Inspect how `assets/site.js` changes based on whether `NODE_ENV` is set to `production`.
 
+
+## Webpack CSS loaders so that CSS/SCSS can be required in js
+
 ### node-sass
 
 For to compile SCSS to CSS we will be using [Node-sass](https://github.com/sass/node-sass). It _is a library that provides binding for Node.js to LibSass, the C version of the popular stylesheet preprocessor, Sass_.  
@@ -472,7 +261,7 @@ For to compile SCSS to CSS we will be using [Node-sass](https://github.com/sass/
 npm install node-sass --save-dev
 ```
 
-### Webpack CSS loaders so that CSS/SCSS can be required in js
+### loaders
 
 So we need a bunch of webpack loaders for this to work and to get that `site.css` working that is ref'ed in the `<head>`.
 
@@ -587,7 +376,7 @@ webpack --progress
 
 SCSS is compiled and spit out in a file under `public/assets` named the same as the entry point key of the JavaScript from which SCSS was included in the first place.
 
-### Note about loader names
+## Note about loader names
 
 Whenever you use loaders
 
@@ -603,7 +392,7 @@ you can omit `-loader` part
 
 But IMHO it's better to be explicit as it helps finding, batch replacing things.
 
-### PostCSS plugins
+## PostCSS plugins
 
 One does not simply... don't use PostCSS. [Use plugins!](https://cdn.meme.am/instances/500x/68322636.jpg)
 
@@ -672,7 +461,7 @@ Run webpack and inspect `public/assets/site.css`
 webpack --progress
 ```
 
-### normalize.css
+## normalize.css
 
 Always use [Normalize.css](https://necolas.github.io/normalize.css/). Although our *cut the mustard* script does fallback page for anything below IE11 this fallback has to look O.K., so use Normalize.css that supports IE8+ (which is 4.x as of now.)
 
@@ -701,7 +490,7 @@ Run webpack and inspect `public/assets/site.css`
 webpack --progress
 ```
 
-### Webpack CSS source maps
+## Webpack CSS source maps
 
 As you can see we pass `?sourceMap` to our loaders (currently we do not have any loaders for JavaScript). But where are the source maps? Use webpack [devtool](https://webpack.github.io/docs/configuration.html#devtool).
 
@@ -753,7 +542,7 @@ devtool: (production) ? null : 'inline-source-map',
 which would enable source maps both for development and staging.
 
 
-### Webpack file-loader & url-loader & resolve-url-loader
+## Webpack file-loader & url-loader & resolve-url-loader
 
 Now let us add some images to source. Make `my-small-image.jpg` few KB and `my-large-image.jpg` above  1 MB.
 
@@ -834,7 +623,7 @@ rm -rf public/assets/** && webpack --progress
 
 Notice how larger image is outputted as file while smaller image is inlined `url(data:image/jpeg;base64,...);` in CSS. Just as we want it.
 
-### Webpack image-webpack-loader
+## Webpack image-webpack-loader
 
 But we can do better. For those images that are outputted as files, let us minify them.  
 _Minify PNG, JP(E)G, GIF and SVG images with [imagemin](https://github.com/imagemin/imagemin)._
