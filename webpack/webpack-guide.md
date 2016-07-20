@@ -1595,7 +1595,7 @@ Set `Tools > Build System > Automatic` to true. Whenever build (shortcut `Cmd+B`
 
 ```json
 {
-	{ "keys": ["super+b"], "command": "build"}
+	{"keys": ["super+b"], "command": "build"}
 }
 ```
 
@@ -1647,7 +1647,7 @@ Create _.stylelintrc_ and fill in some general values. See [documentation](https
       "except": ["first-nested"],
       "ignore": ["after-comment"],
     } ],
-    "unit-whitelist": ["px", em", "rem", "%", "s"]
+    "unit-whitelist": ["px", "em", "rem", "%", "s"]
   }
 }
 ```
