@@ -127,7 +127,7 @@ module.exports = config;
 
 Set up hello world javascript that selects `app` div in our html and puts some text in it. Note that we are using ES5 here.
 
-_site.js_
+_src/site.js_
 
 ```javascript
 'use strict';
@@ -162,7 +162,7 @@ And yeah, we will not discuss filename based versioning stuff in this tut.
 
 Our template has `preflight.js` in the head which is not present after building in previous step (and we get `404`). So let us add new endpoint for preflight.
 
-_preflight.js_
+_src/preflight.js_
 
 ```javascript
 // change noscript to script in html tag
@@ -361,7 +361,7 @@ if (production) {
 module.exports = config;
 ```
 
-_site.js_
+_src/site.js_
 
 ```javascript
 'use strict';
@@ -373,7 +373,7 @@ div.innerHTML = 'Hello JS';
 console.log('Hello JS!');
 ```
 
-_global.scss_
+_src/global.scss_
 
 ```scss
 .app {
@@ -458,7 +458,7 @@ config.postcss = function () {
 
 ```
 
-_global.scss_
+_src/global.scss_
 
 ```scss
 .app {
@@ -687,7 +687,7 @@ Ask.
 
 Let us add new directory `fonts`. Choose font that has few styles (regular and bold + italic) for simplicity. [Space Mono](https://www.fontsquirrel.com/fonts/space-mono)
 
-We need also extra files: `fonts/spacemono-definition.scss`, `typography.scss`
+We need also extra files: `fonts/spacemono-definition.scss`, `src/typography.scss`
 
 
 ```
@@ -786,7 +786,7 @@ _fonts/spacemono-definition.scss_
 
 Import definitions, set typography globals
 
-_typography.scss_
+_src/typography.scss_
 
 ```scss
 @charset 'UTF-8';
@@ -803,7 +803,7 @@ strong em, strong i, b em, b i, em strong, em b, i strong, i b {font-weight: bol
 
 Import typography
 
-_global.scss_
+_src/global.scss_
 
 ```scss
 @import "~normalize.css";
@@ -824,7 +824,7 @@ body {
 
 Add some tags so we can see that bold and normal weight is working
 
-_site.js_
+_src/site.js_
 
 ```javascript
 'use strict';
@@ -1091,7 +1091,7 @@ _public/.htaccess_
 
 Kill `ctrl+c` devserver. Rerun again with the same command. Open up our page. Should contain `Hello JS` and your beautiful backround images.
 
-Fire up _global.scss_ and change height of app div, observe browser.
+Fire up _src/global.scss_ and change height of app div, observe browser.
 
 ```scss
 ...
@@ -1261,7 +1261,7 @@ npm install babel-loader --save-dev
 
 So let us make subtle changes in `site.js`. For test use arrow function that is ES6 feature.
 
-_site.js_
+_src/site.js_
 
 ```javascript
 'use strict';
@@ -1274,7 +1274,7 @@ const myArrowFunction = () => {
 myArrowFunction();
 ```
 
-Now specify loader for JavaScript files. Exclude `node_modules` as they *should be* ES5 already. Exclude `preflight.js` as it by it's role in the webapp should never contain anything ES5+ (ES3 recommended).
+Now specify loader for JavaScript files. Exclude `node_modules` as they *should be* ES5 already. Exclude `src/preflight.js` as it by it's role in the webapp should never contain anything ES5+ (ES3 recommended).
 
 _webpack.config.js_
 
@@ -1309,7 +1309,7 @@ As a side note - we need also polyfills. There are so many polyfills out there a
 npm install babel-polyfill --save-dev
 ```
 
-_site.js_
+_src/site.js_
 
 ```javascript
 'use strict';
@@ -1326,12 +1326,13 @@ myArrowFunction();
 
 Run and inspect `public/site.js`. [Polyfills everywhere](https://cdn.meme.am/instances/500x/65651431.jpg).
 
------
-###### REVISED TILL HERE
+---
+# ESLint
+---
+
+Apart from writing modern JavaScript wou will have to obey syntax rules as well as formatting rules. Oh well. :)
 
 ## ESLint
-
-### ESLint
 
 
 <http://eslint.org/docs/user-guide/configuring#specifying-parser>  
@@ -1343,100 +1344,70 @@ Isntall ESLint
 npm i -D eslint
 ```
 
-Isntall needed plugins
+Install plugin for Babel
+
 ```sh
-npm i -D eslint babel-eslint eslint-config-standard eslint-plugin-babel eslint-plugin-promise eslint-plugin-react eslint-plugin-standard
+npm i -D babel-eslint eslint-plugin-babel
 ```
 
-_.eslintrc_
+
+Install ESLint plugins
+
+```sh
+npm i -D eslint-plugin-promise eslint-plugin-standard
+```
+// eslint-plugin-react
+
+
+Install config we will be using
+```sh
+npm i -D eslint-config-standard
+```
+
+Crete new file _.eslintrc_ under master directory and fill it
 
 ```json
 {
   "extends": ["standard"],
-
-  "ecmaFeatures": {
-    "jsx": true
-  },
   "plugins": [
     "standard",
-    "babel",
     "react"
   ],
   "parser": "babel-eslint",
   "rules": {
-
-    // esling rules
-    // Reference: http://eslint.org/docs/rules/
-    // instead of using esliny rules we use standard
-
-    // enable back semicolons
-    // instead of using semistandard
     "semi": [2, "always"],
     "no-extra-semi": 2,
     "semi-spacing": [2, { "before": false, "after": true }],
 
-    "jsx-quotes": [2, "prefer-double"],
-
-    // babel plugin
     "babel/generator-star-spacing": 1,
     "babel/new-cap": 1,
     "babel/object-curly-spacing": 1,
     "babel/object-shorthand": 1,
     "babel/arrow-parens": 1,
-
-    // react plugin
-    // Reference: https://github.com/yannickcr/eslint-plugin-react
-    "react/display-name": [2, {"ignoreTranspilerName": false}],
-    "react/jsx-boolean-value": [1, "never"],
-    "react/jsx-closing-bracket-location": [1, {"location": "tag-aligned"}],
-    "react/jsx-curly-spacing": [2, "never"],
-    "react/jsx-indent-props": [1, 2],
-    "react/jsx-max-props-per-line": [1, {"maximum": 2}],
-    "react/jsx-no-duplicate-props": [2, {"ignoreCase": false}],
-    "react/jsx-no-literals": 1,
-    "react/jsx-no-undef": 2,
-    // "react/jsx-sort-prop-types": [1, {"ignoreCase": false}],
-    // "react/jsx-sort-props": [1, {"ignoreCase": true}],
-    "react/jsx-uses-react": 1,
-    "react/jsx-uses-vars": 2,
-    "react/no-danger": 1,
-    "react/no-multi-comp": 1,
-    "react/no-unknown-property": 2,
-    "react/prop-types": 2,
-    "react/react-in-jsx-scope": 1,
-    "react/require-extension": 2,
-    "react/self-closing-comp": 2,
-    "react/sort-comp": 1,
-    "react/wrap-multilines": 2,
-    // most of the state should be in your flux implementation, but there
-    // are valid reasons for having state in components, just know what
-    // your doing
-    "react/no-set-state": 0,
-    // keeping these as warning, any state changing in these could only happend
-    // if an async action is sent, else there willbe layout trashing and
-    // multiple render calls
-    "react/no-did-mount-set-state": 1,
-    "react/no-did-update-set-state": 1
-    }
+  }
 }
 
 ```
 
-_.eslintignore_
+
+Crete new file _.eslintignore_ under master directory and fill it
 
 ```
-# node_modules/*
-# bower_components/*
+# by default: node_modules/*
+# by default: bower_components/*
 static/*
 ```
 
-### Webpack ESLint loader
+## Webpack ESLint loader
+
+Wee add new loader to our webpack. It is _preloader_, thus it pre-lints our JavaScript files.
 
 ```sh
 npm i -D eslint-loader
 ```
 
-_webpack.config.js_
+Update _webpack.config.js_, add `preLoaders` key to `config.module` object.  
+And add ESLint configuration. It will be verbose when `!production` and it will fail on any errors when `production`.
 
 ```javascript
 config.module = {
@@ -1446,46 +1417,98 @@ config.module = {
       exclude: /node_modules/,
       loader: 'eslint-loader'
     }
-  ]
-}
+  ],
+  loaders: [
+    {...}
+    
+...
+
+// ----------------
+// PLUGINS
 
 config.eslint = {
   quite: !production,
   failOnWarning: false,
   failOnError: production
 };
+...
 ```
 
+In _src/site.js_ do something questionable
+
+```javascript
+'use strict';
+import 'babel-polyfill';
+import './global.scss';
+const myArrowFunction = () => {
+  const div = document.querySelector('.app');
+  div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
+  div.classList.add('some-class');
+  console.log('Hello JS!') // <-- like not adding semicolon
+};
+myArrowFunction();
+```
+
+Build it `npm run run:prod`.
+
+Observe webpack building notices/warnings/errors. It should contain something like this
+
+```
+ERROR in ./src/site.js
+/path/to/site.js
+  7:27  error  Missing semicolon  semi
+✖ 1 problem (1 error, 0 warnings)
+```
+
+Readd semicolon, rebuild, observe.
+
+Do same with `npm run run:dev` and fix error on the fly.
+
+
+## ESLint in text editors
+
+### Atom
+
+To do
+
 ### Sublime Text 3 - ESLint
+
+If you haven't installed package control in Sublime do it  
+<https://packagecontrol.io/installation>
+
+Install needed packages
+
+`Cmd+Shift+P` in Sublime and `Package Control: Install Package`
+
+Search and add package `SublimeLinter-contrib-eslint`
 
 <https://github.com/roadhump/SublimeLinter-eslint>  
 <http://sublimelinter.readthedocs.io/en/latest/installation.html>  
 <http://sublimelinter.readthedocs.io/en/latest/settings.html>
 
-```
-Cmd+Shift+P
-SublimeLinter
-SublimeLinter-contrib-eslint
-```
-
-Enable elint in project.sublime-project or package settings (default / user)
+Enable ESLint in `project.sublime-project` 
 
 _project.sublime-project_
 
 ```json
-"SublimeLinter":
+{
+	"SublimeLinter":
 	{
 		"linters":
 		{
 			"eslint":
 			{
-        		"@disable": false,
-        		"args": [],
+				"@disable": false,
+				"args":
+				[
+				],
 				"excludes":
 				[
 					"static/*",
 					"node_modules/*",
-					"bower_components/*"
+					"bower_components/*",
+					"*.php",
+					"*.html"
 				]
 			},
 			"jshint":
@@ -1494,9 +1517,12 @@ _project.sublime-project_
 			}
 		}
 	}
+}
 ```
 
-_SublimeLinter > Settings - User_
+Or package settings (default / user)  
+_Sublime Text > Preferences > Package Settings > SublimeLinter > Settings - User_
+which would look something like this
 
 ```json
 {
@@ -1504,59 +1530,52 @@ _SublimeLinter > Settings - User_
         "debug": false,
         "delay": 0.25,
         "error_color": "D02000",
-        "gutter_theme": "none",
+        "gutter_theme": "Packages/SublimeLinter/gutter-themes/Default/Default.gutter-theme",
         "gutter_theme_excludes": [],
         "lint_mode": "background",
         "linters": {
             "eslint": {
-                "@disable": true,
+                "@disable": false,
                 "args": [],
-                "excludes": []
+                "excludes": [
+    					"static/*",
+    					"node_modules/*",
+    					"bower_components/*",
+    					"*.php",
+    					"*.html"
+                ]
             },
-            "jshint": {
-                "@disable": true,
-                "args": [],
-                "excludes": []
-            },
-            "pep8": {
-                "@disable": true,
-                "args": [],
-                "disable": "",
-                "enable": "",
-                "excludes": [],
-                "ignore": "",
-                "max-line-length": null,
-                "rcfile": "",
-                "select": ""
-            }
+            "jshint":
+			  {
+				  "@disable": true
+			  }
         },
         "mark_style": "outline",
         "no_column_highlights_line": false,
         "passive_warnings": false,
         "paths": {
             "linux": [],
-            "osx": [
-                "/usr/local/bin/"
-            ],
+            "osx": [],
             "windows": []
         },
         "python_paths": {
             "linux": [],
-            "osx": [
-                "/usr/local/bin/"
-            ],
+            "osx": [],
             "windows": []
         },
         "rc_search_limit": 3,
         "shell_timeout": 10,
-        "show_errors_on_save": false,
+        "show_errors_on_save": true,
         "show_marks_in_minimap": true,
         "syntax_map": {
             "html (django)": "html",
             "html (rails)": "html",
             "html 5": "html",
+            "javascript (babel)": "javascript",
+            "magicpython": "python",
             "php": "html",
-            "python django": "python"
+            "python django": "python",
+            "pythonimproved": "python"
         },
         "warning_color": "DDB700",
         "wrap_find": true
@@ -1564,8 +1583,21 @@ _SublimeLinter > Settings - User_
 }
 ```
 
-Set build for ESLint autofix  
-<http://sublimetext.info/docs/en/reference/build_systems.html>
+Note that we disable `jshint` if it was previously enabled. jshint is just fast basic error checking, too basic. Use `SublimeLinter-eslint for linting`.
+
+Now do some errors in _src/site.js_ and observe how Sublime reports them on the fly. **Note - Atom wins for this feature.**
+
+## Set ESLint autofix in text editors
+
+**Don't trust autofix, use with care, per one file only! This is like autorouting in EDA.. sad panda.**
+
+### Atom
+
+To do
+
+### Sublime
+
+We can set it up via [build system](http://sublimetext.info/docs/en/reference/build_systems.html)
 
 `Tools > Build System > New Build System`
 
@@ -1576,7 +1608,7 @@ Set build for ESLint autofix
 }
 ```
 
-Set `Tools > Build System > Automatic` to true. Whenever build (shortcut `Cmd+B`) is called from `.js` file it wil be fix-linted. You can cgange/add global build shortcut in `Preferences > Key Bindings - User`
+Set `Tools > Build System > Automatic` to true. Whenever build (shortcut `Cmd+B`) is called from `.js` file it wil be fix-linted. You can change/add global build shortcut in `Preferences > Key Bindings - User`
 
 ```json
 {
@@ -1584,25 +1616,22 @@ Set `Tools > Build System > Automatic` to true. Whenever build (shortcut `Cmd+B`
 }
 ```
 
-### Sublime Text 3 - jshint (simple)
+## Set ESLint `script`
 
-This is just fast error checking, use as reference.
-Use SublimeLinter-eslint for linting, so that `.eslintrc` (profiles) and `.eslintignore` are used.
+**Don't trust autofix, use with care, per one file only! This is like autorouting in EDA.. sad panda.**
 
-<https://github.com/SublimeLinter/SublimeLinter-jshint>  
-<http://sourabhbajaj.com/mac-setup/SublimeText/SublimeLinter.html>
+Add new script to _package.json_
 
-```sh
-npm install -g jshint
+```json
+"lint": "eslint ./src --fix"
 ```
 
-```
-Cmd+Shift+P
-SublimeLinter
-SublimeLinter-jshint
-```
+so that `npm run lint` will autofix all `src` directory.
 
-Enable jshint in `project.sublime-project` or package settings (default / user)
+
+-----
+###### REVISED TILL HERE
+
 
 ***
 
@@ -1616,7 +1645,7 @@ Enable jshint in `project.sublime-project` or package settings (default / user)
 npm install react --save-dev
 npm install react-dom --save-dev
 ```
-_site.js_
+_src/site.js_
 
 ```javascript
 'use strict';
@@ -1665,7 +1694,7 @@ _.babelrc_
   ]
 }
 ```
-_site.js_
+_src/site.js_
 
 ```javascript
 'use strict';
