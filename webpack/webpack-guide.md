@@ -1315,7 +1315,7 @@ Run and inspect `public/site.js`. [Polyfills everywhere](https://cdn.meme.am/ins
 # ESLint
 ---
 
-Apart from writing modern JavaScript you will have to obey syntax rules as well as formatting rules. Oh well.
+Apart from writing modern JavaScript you will have to obey syntax rules as well as formatting rules. Oh well. __*Tabbing in our source code should be SPACES and tab width is 2 SPACES. Configure your text editor.*__
 
 ## ESLint
 
@@ -1617,9 +1617,80 @@ so that `npm run lint` will autofix all `src` directory.
 
 Add linting also to your SCSS.
 
-<http://stylelint.io/user-guide/complementary-tools/#build-tool-plugins>
+## Webpack stylelint
 
-Todo: Guide
+[stylelint-webpack-plugin](http://stylelint.io/user-guide/complementary-tools/#build-tool-plugins)
+
+```sh
+npm install stylelint-webpack-plugin --save-dev
+```
+
+_This webpack plugin will also install `stylelint` dependency. Might not be the latest, but whatever._
+
+Create _.stylelintrc_ and fill in some general values. See [documentation](https://github.com/stylelint/stylelint/blob/master/docs/user-guide/configuration.md).
+
+```json
+{
+  "rules": {
+    "block-no-empty": null,
+    "color-no-invalid-hex": true,
+    "comment-empty-line-before": [ "always", {
+      "ignore": ["stylelint-commands", "between-comments"],
+    } ],
+    "declaration-colon-space-after": "always",
+    "indentation": [2, {
+      "except": ["value"],
+      "severity": "warning"
+    }],
+    "max-empty-lines": 2,
+    "rule-nested-empty-line-before": [ "always", {
+      "except": ["first-nested"],
+      "ignore": ["after-comment"],
+    } ],
+    "unit-whitelist": ["px", em", "rem", "%", "s"]
+  }
+}
+```
+
+Add plugin to _webpack.config.js_
+
+```javascript
+...
+const StyleLintPlugin = require('stylelint-webpack-plugin');
+...
+config.plugins = [];
+...
+config.plugins.push(new StyleLintPlugin({
+  configFile: '.stylelintrc',
+  files: '**/*.s?(a|c)ss',
+  failOnError: false
+}));
+...
+```
+
+Build it, fix SCSS if needed.
+
+## stylelint in text editors
+
+### Atom
+
+To do
+
+### Sublime Text 3 - ESLint
+
+If you haven't installed package control in Sublime do it  
+<https://packagecontrol.io/installation>
+
+Install needed packages
+
+`Cmd+Shift+P` in Sublime and `Package Control: Install Package`
+
+Search and add package `SublimeLinter-contrib-stylelint`
+
+If you have valid _.stylelintrc_ set up and installed `stylelint` (again - don't install directly, just install the plugin) in the project, everything should work out of box.
+
+Same as with ESLint - configure general behaviour via _project.sublime-project_ or 
+_Sublime Text > Preferences > Package Settings > SublimeLinter > Settings - User_.
 
 ---
 # React.js
@@ -1848,6 +1919,7 @@ If you add also some other plugins from built in `webpack.optimize.` family the 
 const path = require('path');
 const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const StyleLintPlugin = require('stylelint-webpack-plugin');
 
 const production = process.env.NODE_ENV === 'production';
 const testing = process.env.NODE_ENV === 'testing';
@@ -1971,6 +2043,12 @@ if (production) {
 
 // ----------------
 // 3rd party loader and plugin configuration
+
+config.plugins.push(new StyleLintPlugin({
+  configFile: '.stylelintrc',
+  files: '**/*.s?(a|c)ss',
+  failOnError: false
+}));
 
 config.eslint = {
   quite: !production,
