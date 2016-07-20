@@ -1,15 +1,22 @@
-# WEBPACK GUIDE
+# WEBPACK BEGINNERS GUIDE <sup>+ npm sidenotes</sup>
 
 ### About
 
-This is a quick, on demand and yet unedited/untested guide how to set up [webpack](https://webpack.github.io) build system (in the moment you drop [gulp](http://gulpjs.com)).
+This is a quick, on demand and yet unedited/untested guide how to set up [webpack](https://webpack.github.io) build system (in the moment you drop [gulp](http://gulpjs.com) on when you haven't used any building/packing system before).
 
-Put together by @kroko for the new colleagues that see webpack for the first time.  
-While doing first edits I realised that also notes should be made for some basic npm stuff as the reality is - there are people who haven't used any building tools or even npm before (not-Node.js backend guys (PHP/ROR/...) leaning towards fullstack of frontend). So this assumes absolute entry level knowledge in terms of packing code.
+Put together by @kroko for the new colleagues that see webpack for the first time. However I tried to formulate things in a way so that other readers may also benefit.  
+_While doing edits I realised that also notes should be made for some basic npm stuff as the reality is - there are people who haven't used any building tools or even npm before (not-Node.js backend guys (PHP/ROR/...) leaning towards fullstack of frontend), but want to jump in webpack. So this assumes entry level knowledge in Node/NPM._
 
 ### Steps
 
-Firstly it uses simple SCSS, plain JavaScript ES5. Then drops in loaders/plugins for CSS and Javascript ES6/ES2015 (PostCSS + plugins, Babel, ESLint a.o.). Finally it adds React.js in the mix.
+* In the beginning examples will use JavaScript ES3/ES5 and SCSS.
+* Then we will drop in loaders/plugins for SCSS ([PostCSS](http://postcss.org) + plugins).
+* Then we will look how to set up basic hot-reloading dev server.
+* At this point you should be able to code oldschool sites usng modern building system - ES3/ES5 JavaScript, use SCSS (I said _oldschool_, writing CSS directly is just _archaic_), hot relaoding.
+* Then we set up system so that we can code in ES6 as well as check our code ([Babel](https://babeljs.io), [ESLint](http://eslint.org)).
+* We add polyfilling that we get out of the box from Babel.
+* As a sidestep we look how to enable linter for text editors.
+* Finally we add [React.js](https://facebook.github.io/react/) in the mix, needed loaders and configuration.
 
 ### Assumtions
 
