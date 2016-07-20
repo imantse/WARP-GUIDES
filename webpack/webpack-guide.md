@@ -1,24 +1,24 @@
-# WEBPACK BEGINNERS GUIDE <sup>+ npm sidenotes</sup>
+# WEBPACK BEGINNERS GUIDE <sup>+ npm side notes</sup>
 
 ### About
 
 This is a quick, on demand and yet unedited/untested guide how to set up [webpack](https://webpack.github.io) build system (in the moment you drop [gulp](http://gulpjs.com) on when you haven't used any building/packing system before).
 
-Put together by @kroko for the new colleagues that see webpack for the first time. However I tried to formulate things in a way so that other readers may also benefit.  
-_While doing edits I realised that also notes should be made for some basic npm stuff as the reality is - there are people who haven't used any building tools or even npm before (not-Node.js backend guys (PHP/ROR/...) leaning towards fullstack of frontend), but want to jump in webpack. So this assumes entry level knowledge in Node/NPM._
+Put together by @kroko for the new colleagues that see webpack for the first time. However I tried to formulate things in a way so that other random readers may also benefit.  
+_While doing edits I realised that notes should be made for some basic npm stuff as the reality is - there are people who haven't used any building tools or even npm before (not-Node.js backend guys - PHP/ROR/... - leaning towards full stack of frontend), but want to jump in webpack. So this assumes entry level knowledge in Node/NPM._
 
 ### Steps
 
 * In the beginning examples will use JavaScript ES3/ES5 and SCSS.
 * Then we will drop in loaders/plugins for SCSS ([PostCSS](http://postcss.org) + plugins).
 * Then we will look how to set up basic hot-reloading dev server.
-* At this point you should be able to code oldschool sites usng modern building system - ES3/ES5 JavaScript, use SCSS (I said _oldschool_, writing CSS directly is just _archaic_), hot relaoding.
+* At this point you should be able to code oldschool sites using modern building system - ES3/ES5 JavaScript, use SCSS (I said _oldschool_, writing CSS directly is just _archaic_), hot reloading.
 * Then we set up system so that we can code in ES6 as well as check our code ([Babel](https://babeljs.io), [ESLint](http://eslint.org)).
-* We add polyfilling that we get out of the box from Babel.
+* We add polyfills that we get out of the box from Babel.
 * As a sidestep we look how to enable linter for text editors.
 * Finally we add [React.js](https://facebook.github.io/react/) in the mix, needed loaders and configuration.
 
-### Assumtions
+### Assumptions
 
 * webpack 1.13.x-1.14.x.
 * Examples are for frontend only. Guide assumes Apache2 server (our devserver pool) for which a virtual host is configured that the `public` directory that you will see later is the `DocumentRoot` of that vhost. Just create new devsite via `warpdevsite nameformywebpacktest && cdd nameformywebpacktest ` and you're all set. If you want to try this outside our devserver with small modifications it will also work if serving stuff via NGINX (proxy in `.htaccess` that I'm going to talk about then should go in conf) as well as Node.js (simple `http` + `node-static` or full Express.js).
@@ -41,7 +41,7 @@ _While doing edits I realised that also notes should be made for some basic npm 
 
 Crate master directory and set files tree up like this (`tree -a .`).  
 Leave all files empty, we will fill them up step by step.  
-Remeber - `public` is `DocumentRoot`, served at `nameformywebpacktest.our.dev.host.tld`.
+Remember - `public` is `DocumentRoot`, served at `nameformywebpacktest.our.dev.host.tld`.
 
 ```
 master-directory
@@ -95,7 +95,7 @@ npm init
 
 *Note for [absolute beginners](https://www.youtube.com/watch?v=r8NZa9wYZ_U). All `npm` as well as `webpack` commands are executed while being `cd`-ed in this projects 'master directory'. You can do it while being somewhere else via `npm --prefix ${DIRNAME} install ${DIRNAME}` though. RTFM@NPM / ask.*
 
-## Set up webpack so that we can simply build js file
+## Set up webpack so that we can simply build JavaScript file
 
 Install webpack and save to dev dependencies
 
@@ -164,7 +164,7 @@ Think of what would happen if you had multiple entry points (just like in a real
 And yeah, we will not discuss filename based versioning stuff in this tut.
 
 
-## Build multiple js files
+## Build multiple JavaScript files
 
 Our template has `preflight.js` in the head which is not present after building in previous step (and we get `404`). So let us add new endpoint for preflight.
 
@@ -268,7 +268,7 @@ rm -rf public/assets/** && NODE_ENV=production webpack --progress
 Inspect how `assets/site.js` changes based on whether `NODE_ENV` is set to `production`.
 
 
-## Webpack CSS loaders so that CSS/SCSS can be required in js
+## Webpack CSS loaders so that CSS/SCSS can be required in JavaScript
 
 ### node-sass
 
@@ -449,7 +449,7 @@ config.postcss = function () {
   postPluginConf.push(
     require('css-mqpacker')()
   );
-  // we minimize CSS always as we have source maps, but for this example let us do conditional
+  // we minimise CSS always as we have source maps, but for this example let us do conditional
   if (production) {
     postPluginConf.push(
       require('cssnano')({discardComments: {removeAll: true}, zindex: false})
@@ -615,7 +615,7 @@ body {
 }
 ```
 
-Add loader in the pipe and loader rule to handle this file type (don't be suprised about not including svg, later on that)
+Add loader in the pipe and loader rule to handle this file type (don't be surprised about not including SVG, later on that)
 
 _webpack.config.js_
 
@@ -667,7 +667,7 @@ Run webpack and inspect `public/assets/` directory, how outputted image size dif
 rm -rf public/assets/** && webpack --progress
 ```
 
-This process is expensive. In development we do not care about filesizes as we live within gigabit ethernet, so set it to 
+This process is expensive. In development we do not care about file size as we live within gigabit ethernet, so set it to 
 
 ```javascript
 ...
@@ -874,7 +874,7 @@ rm -rf public/assets/** && webpack --progress
 
 ## Webpack GLSL shader loader
 
-We write our shaders in seperate files.
+We write our shaders in separate files.
 
 [phaser-glsl-loader](phaser-glsl-loader)
 
@@ -925,7 +925,7 @@ npm install script-loader --save-dev
 
 ### Webpack style-loader
 
-Just for reference. We have alreaddy installed this.  
+Just for reference. We have already installed this.  
 Adds CSS to the DOM by injecting a `<style>` tag. Use with webpack-dev-server.
 [https://github.com/webpack/style-loader](https://github.com/webpack/style-loader)
 
@@ -955,7 +955,7 @@ Note: Don’t use it in watch mode. Only for production builds.
 _webpack.config.js_
 
 ```javascript
-// define enviromental variables into scripts
+// define environmental variables into scripts
 config.plugins.push(new webpack.DefinePlugin({
   'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
   __CLIENT__: true,
@@ -997,7 +997,7 @@ npm i -D webpack-dev-server
 
 ### manage-htaccess
 
-We will need port proxying for this. Instead of proxying within Apache2 vhost (only suitable for dev & small loads) on NGINX proxy (ze best!), this will give us fast proxy on/off in case of Apache whithin `.htaccess`  
+We will need port proxying for this. Instead of proxying within Apache2 vhost (only suitable for dev & small loads) on NGINX proxy (ze best!), this will give us fast proxy on/off in case of Apache within `.htaccess`  
 [manage-htaccess](https://github.com/WARP-LAB/manage-htaccess)
 
 ```sh
@@ -1014,7 +1014,7 @@ So. Let us try
 rm -rf public/assets/** && webpack-dev-server --config=./webpack.config.js --host=nameformywebpacktest.our.dev.host.tld --port=4000 --history-api-fallback -d --inline --hot
 ```
 
-Something run. Our `index.html` returns `404` to all assets, cannot find anyrthing in `public/assets/`. Why? `public/assets/` directory is empty, right?
+Something run. Our `index.html` returns `404` to all assets, cannot find anything in `public/assets/`. Why? `public/assets/` directory is empty, right?
 
 Now try accessing <http://nameformywebpacktest.our.dev.host.tld:4000/site.css>. Gooody good.
 
@@ -1051,7 +1051,7 @@ _public/.htaccess_
 </IfModule>
 ```
 
-Kill `ctrl+c` devserver. Rerun again with the same command. Open up our page. Should contain `Hello JS` and your beautiful backround images.
+Kill `ctrl+c` devserver. Rerun again with the same command. Open up our page. Should contain `Hello JS` and your beautiful background images.
 
 Fire up _src/global.scss_ and change height of app div, observe browser.
 
@@ -1070,7 +1070,7 @@ Rerun statically
 rm -rf public/assets/** && webpack --progress
 ```
 
-:( page does not work any more, because now files are back in `public/assets`, 4000 port is empty. So we need to be able to turn the proxy on/off in `.htaccess` based on whether we run dynamically hot relaoding or run _statically_.
+:( page does not work any more, because now files are back in `public/assets`, 4000 port is empty. So we need to be able to turn the proxy on/off in `.htaccess` based on whether we run dynamically hot reloading or run _statically_.
 
 Add `manage-htaccess` in the mix.
 
@@ -1111,7 +1111,7 @@ _public/.htaccess_
 ```
 
 How it works:
-Whenever `NODE_ENV` is set to `production` _manage-htaccess_ disables anything between the specified tags (there can be multiple occurances as well as multiple tags) in `.htaccess` file (TESTTAG state is `!production === false`). So our proxy RewriteRule is off. If `NODE_ENV` is not `production` (thus assuming development, whlist actually there should also be staging settings), then anything between the tags is enabled (TESTTAG state is `!production === true`).
+Whenever `NODE_ENV` is set to `production` _manage-htaccess_ disables anything between the specified tags (there can be multiple occurrences as well as multiple tags) in `.htaccess` file (TESTTAG state is `!production === false`). So our proxy RewriteRule is off. If `NODE_ENV` is not `production` (thus assuming development, whilst actually there should also be staging settings), then anything between the tags is enabled (TESTTAG state is `!production === true`).
 
 
 So test it now
@@ -1200,9 +1200,9 @@ It is hard to remember all the commands that need to be executed to run stuff. T
 
 * `npm run run:dev ` to run dev-server
 
-	* `npm run sreen:start` to start dev-server in a seperate screen  
-	* `npm run screen:stop` to stop dev-server in that seperate screen
-	* `npm run screen:enter` to attach to the running screen so you can inspect building errors (`ctrl+a` + `ctrl+d` to deattach without interrupting, `ctrl+a` + `:quit` to kill it while being within screen session).
+	* `npm run sreen:start` to start dev-server in a separate screen  
+	* `npm run screen:stop` to stop dev-server in that separate screen
+	* `npm run screen:enter` to attach to the running screen so you can inspect building errors (`ctrl+a` + `ctrl+d` to detach without interrupting, `ctrl+a` + `:quit` to kill it while being within screen session).
 
 ---
 # Babel
@@ -1315,7 +1315,7 @@ Run and inspect `public/site.js`. [Polyfills everywhere](https://cdn.meme.am/ins
 # ESLint
 ---
 
-Apart from writing modern JavaScript wou will have to obey syntax rules as well as formatting rules. Oh well. :)
+Apart from writing modern JavaScript you will have to obey syntax rules as well as formatting rules. Oh well.
 
 ## ESLint
 
@@ -1323,7 +1323,7 @@ Apart from writing modern JavaScript wou will have to obey syntax rules as well 
 <http://eslint.org/docs/user-guide/configuring#specifying-parser>  
 <http://eslint.org/docs/user-guide/configuring#ignoring-files-and-directories>
 
-Isntall ESLint
+Install ESLint
 
 ```sh
 npm i -D eslint
@@ -1443,7 +1443,7 @@ ERROR in ./src/site.js
 ✖ 1 problem (1 error, 0 warnings)
 ```
 
-Readd semicolon, rebuild, observe.
+Add back semicolon, rebuild, observe.
 
 Do same with `npm run run:dev` and fix error on the fly.
 
@@ -1566,7 +1566,7 @@ which would look something like this
 }
 ```
 
-Note that we disable `jshint` if it was previously enabled. jshint is just fast basic error checking, too basic. Use `SublimeLinter-eslint for linting`.
+Note that we disable `jshint` if it was previously enabled. jshint is just fast basic error checking, too basic. Use ESLint for linting.
 
 Now do some errors in _src/site.js_ and observe how Sublime reports them on the fly. **Note - Atom wins for this feature.**
 
@@ -1611,6 +1611,15 @@ Add new script to _package.json_
 
 so that `npm run lint` will autofix all `src` directory.
 
+---
+# stylelint
+---
+
+Add linting also to your SCSS.
+
+<http://stylelint.io/user-guide/complementary-tools/#build-tool-plugins>
+
+Todo: Guide
 
 ---
 # React.js
@@ -1981,7 +1990,7 @@ config.postcss = function () {
   postPluginConf.push(
     require('css-mqpacker')()
   );
-  // we minimize CSS always as we have source maps, but for this example let us do conditional
+  // we minimise CSS always as we have source maps, but for this example let us do conditional
   if (production) {
     postPluginConf.push(
       require('cssnano')({discardComments: {removeAll: true}, zindex: false})
