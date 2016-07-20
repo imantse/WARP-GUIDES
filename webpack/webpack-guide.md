@@ -14,7 +14,7 @@ Firstly it uses simple SCSS, plain JavaScript ES5. Then drops in loaders/plugins
 ### Assumtions
 
 * webpack 1.13.x-1.14.x.
-* Examples are for frontend only. Guide assumes Apache2 server (our devserver pool) for which a virtual host is configured that the `public` directory that you will see later is the `DocumentRoot` of that vhost. Just create new devsite via `warpdevsite nameformywebpacktest && cdd nameformywebpacktest ` and you're all set. If you want to try this outside our devsserver with small modifications it will also work if serving stuff via NGINX (proxy in `.htaccess` that I'm going to talk about then should go in conf) as well as Node.js (simple `http` + `node-static` or full Express.js).
+* Examples are for frontend only. Guide assumes Apache2 server (our devserver pool) for which a virtual host is configured that the `public` directory that you will see later is the `DocumentRoot` of that vhost. Just create new devsite via `warpdevsite nameformywebpacktest && cdd nameformywebpacktest ` and you're all set. If you want to try this outside our devserver with small modifications it will also work if serving stuff via NGINX (proxy in `.htaccess` that I'm going to talk about then should go in conf) as well as Node.js (simple `http` + `node-static` or full Express.js).
 
 ### Your task
 
@@ -32,7 +32,9 @@ Firstly it uses simple SCSS, plain JavaScript ES5. Then drops in loaders/plugins
 
 ## SET UP BASIC FILES & DIR STRUCTURE
 
-Crate master directory and set files tree up like this (`tree -a .`). Leave all files empty, we will fill them up step by step.
+Crate master directory and set files tree up like this (`tree -a .`).  
+Leave all files empty, we will fill them up step by step.  
+Remeber - `public` is `DocumentRoot`, served at `nameformywebpacktest.our.dev.host.tld`.
 
 ```
 master-directory
