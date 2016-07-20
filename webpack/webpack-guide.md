@@ -104,7 +104,6 @@ _webpack.config.js_
 'use strict';
 const path = require('path');
 let config = {
- 
   context: __dirname,
   entry: {
     site: './src/site.js' // path.join(__dirname, 'src/site.js') if context not set
@@ -121,7 +120,7 @@ let config = {
     ],
     root: path.resolve('./src/')
   }
-}
+};
 module.exports = config;
 ```
 
@@ -175,7 +174,6 @@ _webpack.config.js_
 'use strict';
 const path = require('path');
 let config = {
- 
   context: __dirname,
   entry: {
     site: './src/site.js',
@@ -193,7 +191,7 @@ let config = {
     ],
     root: path.resolve('./src/')
   }
-}
+};
 module.exports = config;
 ```
 
@@ -222,7 +220,6 @@ const path = require('path');
 const production = process.env.NODE_ENV === 'production';
 
 let config = {
- 
   context: __dirname,
   entry: {
     site: './src/site.js',
@@ -240,7 +237,7 @@ let config = {
     ],
     root: path.resolve('./src/')
   }
-}
+};
 
 const webpack = require('webpack');
 config.plugins = []; // add new key 'plugins' to config object, array
@@ -309,7 +306,6 @@ const production = process.env.NODE_ENV === 'production';
 // BASE CONFIG
 
 let config = {
- 
   context: __dirname,
   entry: {
     site: './src/site.js',
@@ -327,7 +323,7 @@ let config = {
     ],
     root: path.resolve('./src/')
   }
-}
+};
 
 // ----------------
 // MODULES
@@ -339,7 +335,7 @@ config.module = {
       loader: ExtractTextPlugin.extract('style-loader', 'css-loader?sourceMap!sass-loader?sourceMap')
     }
   ]
-}
+};
 
 // ----------------
 // PLUGINS
@@ -512,10 +508,10 @@ First try
 _webpack.config.js_
 
 ```javascript
-config = {
+let config = {
   devtool: 'inline-source-map',
   ...
-}
+};
 ```
 
 Run webpack and inspect `public/assets/site.js` and `public/assets/site.css`
@@ -527,10 +523,10 @@ rm -rf public/assets/** && webpack --progress
 Now try
 
 ```javascript
-config = {
+let config = {
   devtool: 'source-map',
   ...
-}
+};
 ```
 
 Run webpack and inspect `public/assets/` directory.
@@ -540,10 +536,10 @@ Finally set for now to always generate source maps, as we are testing things her
 _webpack.config.js_
 
 ```javascript
-config = {
+let config = {
   devtool: production ? 'source-map' : 'inline-source-map',
   ...
-}
+};
 ```
 
 In real world I tend to use
@@ -1162,6 +1158,29 @@ rm -rf public/assets/** && webpack-dev-server --config=./webpack.config.js --hos
 rm -rf public/assets/** && NODE_ENV=production webpack --progress
 ```
 
+## Dynamic CSS
+
+When running dev server we actually want CSS to be inlined within JavaScript (which will result in `404` for `assets/site.css` and FOUC) so that hot reloading works better. Thus final loader config would look like this. And, yes, add loader to process plain CSS files as they might show up somewhere.
+
+_webpack.config.js_
+
+```javascript
+...
+    {
+      test: /\.(scss)$/,
+      loader: production
+      ? ExtractTextPlugin.extract('style-loader', 'css-loader?sourceMap!postcss-loader!resolve-url-loader?keepQuery!sass-loader?sourceMap')
+      : 'style-loader!css-loader?sourceMap!postcss-loader!resolve-url-loader?keepQuery!sass-loader?sourceMap'
+    },
+    {
+      test: /\.(css)$/,
+      loader: production
+        ? ExtractTextPlugin.extract('style-loader', 'css-loader?sourceMap!postcss-loader')
+        : 'style-loader!css-loader?sourceMap!postcss-loader'
+    },
+...
+```
+
 ---
 # Use npm `scripts`!
 ---
@@ -1350,14 +1369,11 @@ Install plugin for Babel
 npm i -D babel-eslint eslint-plugin-babel
 ```
 
-
 Install ESLint plugins
 
 ```sh
 npm i -D eslint-plugin-promise eslint-plugin-standard
 ```
-// eslint-plugin-react
-
 
 Install config we will be using
 ```sh
@@ -1420,7 +1436,8 @@ config.module = {
   ],
   loaders: [
     {...}
-    
+  ...
+}; 
 ...
 
 // ----------------
@@ -1629,22 +1646,97 @@ Add new script to _package.json_
 so that `npm run lint` will autofix all `src` directory.
 
 
------
-###### REVISED TILL HERE
+---
+# React.js
+---
 
+## React.js
 
-***
-
-##React.js
-
-### React.js
-
-[https://facebook.github.io/react/downloads.html](https://facebook.github.io/react/downloads.html)
+Install
 
 ```sh
 npm install react --save-dev
 npm install react-dom --save-dev
 ```
+
+Install Babel preset for React.js & JSX
+
+```sh
+npm install babel-preset-react --save-dev
+```
+
+Reconfigure _.babelrc_ to include react
+
+```json
+{
+  "presets": ["es2015", "stage-0", "react"]
+}
+```
+
+Install ESLint plugin for React.js
+
+```sh
+npm install eslint-plugin-react --save-dev
+```
+
+Reconfigure _.eslintrc_
+
+```json
+{
+  "extends": ["standard"],
+  "ecmaFeatures": {
+    "jsx": true
+  },
+  "plugins": [
+    "standard",
+    "babel",
+    "react"
+  ],
+  "parser": "babel-eslint",
+  "rules": {
+    "semi": [2, "always"],
+    "no-extra-semi": 2,
+    "semi-spacing": [2, { "before": false, "after": true }],
+
+    "jsx-quotes": [2, "prefer-double"],
+
+    "babel/generator-star-spacing": 1,
+    "babel/new-cap": 1,
+    "babel/object-curly-spacing": 1,
+    "babel/object-shorthand": 1,
+    "babel/arrow-parens": 1,
+
+    "react/display-name": [2, {"ignoreTranspilerName": false}],
+    "react/jsx-boolean-value": [1, "never"],
+    "react/jsx-closing-bracket-location": [1, {"location": "tag-aligned"}],
+    "react/jsx-curly-spacing": [2, "never"],
+    "react/jsx-indent-props": [1, 2],
+    "react/jsx-max-props-per-line": [1, {"maximum": 2}],
+    "react/jsx-no-duplicate-props": [2, {"ignoreCase": false}],
+    "react/jsx-no-literals": 1,
+    "react/jsx-no-undef": 2,
+
+    "react/jsx-uses-react": 1,
+    "react/jsx-uses-vars": 2,
+    "react/no-danger": 1,
+    "react/no-multi-comp": 1,
+    "react/no-unknown-property": 2,
+    "react/prop-types": 2,
+    "react/react-in-jsx-scope": 1,
+    "react/require-extension": 2,
+    "react/self-closing-comp": 2,
+    "react/sort-comp": 1,
+    "react/wrap-multilines": 2,
+
+    "react/no-set-state": 0,
+
+    "react/no-did-mount-set-state": 1,
+    "react/no-did-update-set-state": 1,
+  }
+}
+```
+
+
 _src/site.js_
 
 ```javascript
@@ -1653,21 +1745,25 @@ _src/site.js_
 import 'babel-polyfill';
 import './global.scss';
 
-var React = require('react');
-var ReactDOM = require('react-dom');
+import React from 'react';
+import ReactDOM from 'react-dom';
 
 ReactDOM.render(
-  <h1>Hello, React.js!</h1>,
+  <div><h1>{'Hello, React.js!'}</h1><p>{'Lorem ipsum'}</p></div>,
   document.querySelector('.app')
 );
 ```
 
-### Webpack hot loader for React
+Build it
+
+## Webpack hot loader for React
+
+Hot reloading React.js components without messing up the state.
 
 ```sh
 npm install react-hot-loader --save-dev
 ```
-_webpack.config.js_
+edit JavaScript loader in _webpack.config.js_
 
 ```javascript
     {
@@ -1677,33 +1773,27 @@ _webpack.config.js_
     },
 ```
 
+## React.js getting started code sample
 
-### Babel preset for JSX and ES7+
+Test it.
 
-```sh
-npm install babel-preset-react --save-dev
-npm install babel-preset-stage-0 --save-dev 
-```
-_.babelrc_
-
-```json
-{
-  "presets": ["es2015", "react", "stage-0"],
-  "plugins": [
-    ["transform-decorators-legacy"]
-  ]
-}
-```
 _src/site.js_
 
 ```javascript
 'use strict';
+
+/* global __DEVELOPMENT__ */
 
 import 'babel-polyfill';
 import './global.scss';
 
 import React, {Component, PropTypes} from 'react';
 import ReactDOM from 'react-dom';
+
+// enable debug via webpack.DefinePlugin
+if (__DEVELOPMENT__) {
+  window.React = React;
+}
 
 class Counter extends Component {
   static propTypes = {
@@ -1717,7 +1807,6 @@ class Counter extends Component {
     this.state = {
       count: this.props.initialCount
     };
-    // this.onClickHandler = this.onClickHandler.bind(this);
     this.onClickHandler = ::this.onClickHandler;
   }
   onClickHandler () {
@@ -1728,7 +1817,7 @@ class Counter extends Component {
   render () {
     const {count} = this.state;
     return (
-      <div onClick={this.onClickHandler}>
+      <div onClick={this.onClickHandler} style={{width: '100%', height: '100%'}}>
         {`Mouse click count: ${count}`}
       </div>
     );
@@ -1739,40 +1828,13 @@ ReactDOM.render(
   <Counter />,
   document.querySelector('.app')
 );
-```
-<https://facebook.github.io/react/blog/2015/01/27/react-v0.13.0-beta-1.html>
-
-
-
-### ESLint plugin for React
-
-Done previously
-
-```sh
-npm install eslint-plugin-react --save-dev
-```
-
-### Sublime Text Edit 3 JSX coments
-
-[CommentJSX-Sublime-Text-3](https://github.com/WARP-LAB/CommentJSX-Sublime-Text-3)
-
-### Classnames
-
-[Classnames](https://github.com/JedWatson/classnames)
-
-```sh
-npm install classnames --save-dev
-```
-
-### Add-ons
-
-<https://facebook.github.io/react/docs/addons.html>
 
 ```
-    "react-addons-css-transition-group": "^0.14.7",
-```
+
 
 ## Flux & Redux
+
+Some extra notes about `transform-decorators-legacy` when using Redux.
 
 ```sh
 npm install redux --save-dev
@@ -1782,9 +1844,13 @@ npm install react-router-redux --save-dev
 npm install history@">=0.0.0 <3.0.0" --save-dev
 ```
 
-Add `babel-plugin-transform-decorators-legacy` so we can use `@connect` decorator
+Add `babel-plugin-transform-decorators-legacy` so we can use `@connect` a.o. decorators
 
-.babelrc  
+```sh
+npm install babel-plugin-transform-decorators-legacy --save-dev
+```
+
+_.babelrc_
 
 ```
 {
@@ -1795,6 +1861,171 @@ Add `babel-plugin-transform-decorators-legacy` so we can use `@connect` decorato
 }
 ```
 
-<https://egghead.io/courses/getting-started-with-redux>  
-<https://egghead.io/courses/building-react-applications-with-idiomatic-redux>  
+---
+# Result
+---
+
+If you add also some other plugins from built in `webpack.optimize.` family the final webpack configuration in this tutorial looks like this.
+
+
+```javascript
+'use strict';
+const path = require('path');
+const webpack = require('webpack');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+
+const production = process.env.NODE_ENV === 'production';
+
+const webpackHtaccess = require('manage-htaccess');
+webpackHtaccess(
+  [
+    {
+      tag: 'TESTTAG',
+      enabled: !production
+    }
+  ],
+  path.join(__dirname, 'public/.htaccess')
+);
+
+// ----------------
+// BASE CONFIG
+
+let config = {
+  devtool: production ? 'source-map' : 'inline-source-map',
+  context: __dirname,
+  entry: {
+    site: './src/site.js',
+    preflight: './src/preflight.js'
+  },
+  output: {
+    path: './public/assets',
+    filename: '[name].js',
+    publicPath: production ? '//warp.webpack.dev.warp.lv/assets/' : 'http://warp.webpack.dev.warp.lv/assets/'
+  },
+  resolve: {
+    modulesDirectories: [
+      'src',
+      'node_modules',
+      'bower_components'
+    ],
+    root: path.resolve('./src/')
+  }
+};
+
+// ----------------
+// MODULES
+
+config.module = {
+  preLoaders: [
+    {
+      test: /\.js$/,
+      exclude: /node_modules/,
+      loader: 'eslint-loader'
+    }
+  ],
+  loaders: [
+    {
+      test: /\.js$/,
+      exclude: [/node_modules/, /preflight\.js$/],
+      loader: production ? 'babel-loader' : 'react-hot-loader!babel-loader'
+    },
+    {
+      test: /\.(scss)$/,
+      loader: production
+      ? ExtractTextPlugin.extract('style-loader', 'css-loader?sourceMap!postcss-loader!resolve-url-loader?keepQuery!sass-loader?sourceMap')
+      : 'style-loader!css-loader?sourceMap!postcss-loader!resolve-url-loader?keepQuery!sass-loader?sourceMap'
+    },
+    {
+      test: /\.(css)$/,
+      loader: production
+        ? ExtractTextPlugin.extract('style-loader', 'css-loader?sourceMap!postcss-loader')
+        : 'style-loader!css-loader?sourceMap!postcss-loader'
+    },
+    {
+      test: /\.(png|jpg|jpeg|gif)$/,
+      loader: production
+        ? 'url-loader?limit=10000!image-webpack-loader'
+        : 'url-loader?limit=10000'
+    },
+    {
+      test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+      loader: 'file-loader'
+    },
+    {
+      test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
+      loader: 'file-loader?mimetype=application/font-woff'
+    },
+    {
+      test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
+      loader: 'file-loader?mimetype=application/font-woff'
+    },
+    {
+      test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+      loader: 'file-loader?mimetype=application/x-font-ttf'
+    },
+    {
+      test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+      loader: 'file-loader?mimetype=image/svg+xml'
+    }
+  ]
+};
+
+// ----------------
+// PLUGINS
+
+config.plugins = [];
+
+config.plugins.push(new webpack.DefinePlugin({
+  __CLIENT__: true,
+  __SERVER__: false,
+  __DEVELOPMENT__: !production,
+  __DEVTOOLS__: !production,
+  'process.env': {
+    NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')
+  }
+}));
+
+if (production) {
+  config.plugins.push(new webpack.optimize.DedupePlugin());
+  config.plugins.push(new webpack.optimize.OccurenceOrderPlugin());
+  config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
+  config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
+  config.plugins.push(new ExtractTextPlugin('[name].css', {allChunks: true}));
+  config.plugins.push(new webpack.optimize.UglifyJsPlugin({compressor: {warnings: false}}));
+}
+
+// ----------------
+// 3rd party loader and plugin configuration
+
+config.eslint = {
+  quite: !production,
+  failOnWarning: false,
+  failOnError: production
+};
+
+config.postcss = function () {
+  let postPluginConf = [];
+  postPluginConf.push(
+    require('autoprefixer')({
+      browsers: ['> 0.0001%'],
+      cascade: true,
+      remove: true
+    })
+  );
+  postPluginConf.push(
+    require('css-mqpacker')()
+  );
+  // we minimize CSS always as we have source maps, but for this example let us do conditional
+  if (production) {
+    postPluginConf.push(
+      require('cssnano')({discardComments: {removeAll: true}, zindex: false})
+      // ["zindex", "normalizeUrl", "discardUnused", "mergeIdents", "reduceIdents"]
+    );
+  }
+  return postPluginConf;
+};
+
+module.exports = config;
+```
+
 
