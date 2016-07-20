@@ -1353,7 +1353,7 @@ Crete new file _.eslintrc_ under master directory and fill it
   "extends": ["standard"],
   "plugins": [
     "standard",
-    "react"
+    "babel"
   ],
   "parser": "babel-eslint",
   "rules": {
