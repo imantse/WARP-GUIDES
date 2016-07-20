@@ -29,6 +29,7 @@ Crate master directory and set files tree up like this (`tree -a .`). Leave all 
 master-directory
 ├── package.json
 ├── public
+│   ├── assets
 │   ├── .htaccess
 │   └── index.html
 ├── src
@@ -124,10 +125,10 @@ div.innerHTML = 'Hello JS';
 console.log('Hello JS!');
 ```
 
-Run webpack
+Run webpack (before that clean assets directory)
 
 ```sh
-webpack --progress
+rm -rf public/assets/** && webpack --progress
 ```
 
 Notice, that entry point __key names__ dictate what will be the outputted __filename__ in `./public/assets`. That is, you can change key name and real file name to whatever, i.e.,
@@ -188,7 +189,7 @@ module.exports = config;
 Run webpack
 
 ```sh
-webpack --progress
+rm -rf public/assets/** && webpack --progress
 ```
 
 Inspect. The file is in `public/assets` directory and it does its job.
@@ -246,7 +247,7 @@ module.exports = config;
 Run webpack, specify `NODE_ENV` value
 
 ```sh
-NODE_ENV=production webpack --progress
+rm -rf public/assets/** && NODE_ENV=production webpack --progress
 ```
 
 Inspect how `assets/site.js` changes based on whether `NODE_ENV` is set to `production`.
@@ -372,7 +373,7 @@ _global.scss_
 Run webpack and inspect `public/assets/site.css`
 
 ```sh
-webpack --progress
+rm -rf public/assets/** && webpack --progress
 ```
 
 SCSS is compiled and spit out in a file under `public/assets` named the same as the entry point key of the JavaScript from which SCSS was included in the first place.
@@ -459,7 +460,7 @@ _global.scss_
 Run webpack and inspect `public/assets/site.css`
 
 ```sh
-webpack --progress
+rm -rf public/assets/** && webpack --progress
 ```
 
 ## normalize.css
@@ -488,7 +489,7 @@ _site.scss_
 Run webpack and inspect `public/assets/site.css`
 
 ```sh
-webpack --progress
+rm -rf public/assets/** && webpack --progress
 ```
 
 ## Webpack CSS source maps
@@ -509,7 +510,7 @@ config = {
 Run webpack and inspect `public/assets/site.js` and `public/assets/site.css`
 
 ```sh
-webpack --progress
+rm -rf public/assets/** && webpack --progress
 ```
 
 Now try
@@ -665,6 +666,198 @@ This process is expensive. In development we do not care about filesizes as we l
 ...
 ```
 
+## Fonts - webfont building
+
+Convert TTF/OTF to all webwonts (WOFF, WOFF2, EOT, SVG) in building process.
+
+Ask.
+
+## Fonts - webfont packing & loading
+
+Let us add new directory `fonts`. Choose font that has few styles (regular and bold + italic) for simplicity. [Space Mono](https://www.fontsquirrel.com/fonts/space-mono)
+
+We need also extra files: `fonts/spacemono-definition.scss`, `typography.scss`
+
+
+```
+├── package.json
+├── public
+│   ├── assets
+│   ├── .htaccess
+│   └── index.html
+├── src
+│   ├── fonts
+│   │   ├── spacemono
+│   │   │   ├── spacemono-bolditalic-webfont.eot
+│   │   │   ├── spacemono-bolditalic-webfont.svg
+│   │   │   ├── spacemono-bolditalic-webfont.ttf
+│   │   │   ├── spacemono-bolditalic-webfont.woff
+│   │   │   ├── spacemono-bolditalic-webfont.woff2
+│   │   │   ├── spacemono-bold-webfont.eot
+│   │   │   ├── spacemono-bold-webfont.svg
+│   │   │   ├── spacemono-bold-webfont.ttf
+│   │   │   ├── spacemono-bold-webfont.woff
+│   │   │   ├── spacemono-bold-webfont.woff2
+│   │   │   ├── spacemono-italic-webfont.eot
+│   │   │   ├── spacemono-italic-webfont.svg
+│   │   │   ├── spacemono-italic-webfont.ttf
+│   │   │   ├── spacemono-italic-webfont.woff
+│   │   │   ├── spacemono-italic-webfont.woff2
+│   │   │   ├── spacemono-regular-webfont.eot
+│   │   │   ├── spacemono-regular-webfont.svg
+│   │   │   ├── spacemono-regular-webfont.ttf
+│   │   │   ├── spacemono-regular-webfont.woff
+│   │   │   └── spacemono-regular-webfont.woff2
+│   │   └── spacemono-definition.scss
+│   ├── global.scss
+│   ├── images
+│   │   ├── my-large-image.jpg
+│   │   └── my-small-image.jpg
+│   ├── preflight.js
+│   ├── site.js
+│   └── typography.scss
+└── webpack.config.js
+```
+
+Define font family
+
+_fonts/spacemono-definition.scss_
+
+```scss
+@font-face {
+    font-family: 'spacemono-webpack';
+    src: url('./spacemono/spacemono-bold-webfont.eot');
+    src: url('./spacemono/spacemono-bold-webfont.eot?#iefix') format('embedded-opentype'),
+         url('./spacemono/spacemono-bold-webfont.woff2') format('woff2'),
+         url('./spacemono/spacemono-bold-webfont.woff') format('woff'),
+         url('./spacemono/spacemono-bold-webfont.ttf') format('truetype'),
+         url('./spacemono/spacemono-bold-webfont.svg#space_monobold') format('svg');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'spacemono-webpack';
+    src: url('./spacemono/spacemono-bolditalic-webfont.eot');
+    src: url('./spacemono/spacemono-bolditalic-webfont.eot?#iefix') format('embedded-opentype'),
+         url('./spacemono/spacemono-bolditalic-webfont.woff2') format('woff2'),
+         url('./spacemono/spacemono-bolditalic-webfont.woff') format('woff'),
+         url('./spacemono/spacemono-bolditalic-webfont.ttf') format('truetype'),
+         url('./spacemono/spacemono-bolditalic-webfont.svg#space_monobold_italic') format('svg');
+    font-weight: 700;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'spacemono-webpack';
+    src: url('./spacemono/spacemono-regular-webfont.eot');
+    src: url('./spacemono/spacemono-regular-webfont.eot?#iefix') format('embedded-opentype'),
+         url('./spacemono/spacemono-regular-webfont.woff2') format('woff2'),
+         url('./spacemono/spacemono-regular-webfont.woff') format('woff'),
+         url('./spacemono/spacemono-regular-webfont.ttf') format('truetype'),
+         url('./spacemono/spacemono-regular-webfont.svg#space_monoregular') format('svg');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'spacemono-webpack';
+    src: url('./spacemono/spacemono-italic-webfont.eot');
+    src: url('./spacemono/spacemono-italic-webfont.eot?#iefix') format('embedded-opentype'),
+         url('./spacemono/spacemono-italic-webfont.woff2') format('woff2'),
+         url('./spacemono/spacemono-italic-webfont.woff') format('woff'),
+         url('./spacemono/spacemono-italic-webfont.ttf') format('truetype'),
+         url('./spacemono/spacemono-italic-webfont.svg#space_monoitalic') format('svg');
+    font-weight: 400;
+    font-style: italic;
+}
+```
+
+Import definitions, set typography globals
+
+_typography.scss_
+
+```scss
+@charset 'UTF-8';
+@import "fonts/spacemono-definition";
+body{
+  font-family: 'spacemono-webpack', 'Comic Sans MS', monospace;
+  font-weight: 400;
+}
+em, i {font-style: italic;}
+strong, b {font-weight: bold;}
+strong em, strong i, b em, b i, em strong, em b, i strong, i b {font-weight: bold;font-style: italic;}
+
+```
+
+Import typography
+
+_global.scss_
+
+```scss
+@import "~normalize.css";
+@import "typography.scss";
+
+body {
+  background-image: url('./images/my-large-image.jpg');
+}
+
+.app {
+  background-color: red;
+  display: flex;
+  transform: translateY(50px);
+  height: 100px;
+  background-image: url('./images/my-small-image.jpg');
+}
+```
+
+Add some tags so we can see that bold and normal weight is working
+
+_site.js_
+
+```javascript
+'use strict';
+require('./global.scss');
+var div = document.querySelector('.app');
+div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
+console.log('Hello JS!');
+```
+
+Add loaders for font files in webpack config
+
+_webpack.config.js_
+
+```javascript
+...
+    {
+      test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+      loader: 'file-loader'
+    },
+    {
+      test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
+      loader: 'file-loader?mimetype=application/font-woff'
+    },
+    {
+      test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
+      loader: 'file-loader?mimetype=application/font-woff'
+    },
+    {
+      test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+      loader: 'file-loader?mimetype=application/x-font-ttf'
+    },
+    {
+      test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+      loader: 'file-loader?mimetype=image/svg+xml'
+    }
+...
+```
+
+Run webpack and inspect `public/assets/` directory and `public/assets/site.css`.
+
+```sh
+rm -rf public/assets/** && webpack --progress
+```
+
 -----
 ###### REVISED TILL HERE
 
@@ -694,42 +887,6 @@ npm i -D style-loader
 npm install manage-htaccess --save-dev
 ```
 
-### Font building
-
-todo
-
-### Font copying
-
-_webpack.config.js_
-
-```javascript
-loaders: [
-    // Troubleshooting Webpack "OTS parsing error" loading fonts.
-    // Note: NOT FIXED!
-    // Ref: http://stackoverflow.com/a/34133809/1378261
-    // Ref: http://stackoverflow.com/a/30763977/1378261
-    {
-      test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-      loader: 'file-loader'
-    },
-    {
-      test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-      loader: 'file-loader?mimetype=application/font-woff'
-    },
-    {
-      test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-      loader: 'file-loader?mimetype=application/font-woff'
-    },
-    {
-      test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-      loader: 'file-loader?mimetype=application/x-font-ttf'
-    },
-    {
-      test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-      loader: 'file-loader?mimetype=image/svg+xml'
-    }
-]
-```
 
 
 
