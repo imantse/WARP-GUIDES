@@ -926,15 +926,29 @@ Adds CSS to the DOM by injecting a `<style>` tag. Use with webpack-dev-server.
 npm i -D style-loader
 ```
 
-### Webpack plugins, other
+### Webpack other built in plugins to use
 
-[webpack.DefinePlugin](https://webpack.github.io/docs/list-of-plugins.html#defineplugin)  
+#### Obligatory
+
+* [webpack.DefinePlugin](https://webpack.github.io/docs/list-of-plugins.html#defineplugin)  
 Define free variables. Useful for having development builds with debug logging or adding global constants. The values will be inlined into the code which allows a minification pass to remove the redundant conditional.
+
+* [webpack.optimize.DedupePlugin](https://webpack.github.io/docs/list-of-plugins.html#dedupeplugin)  
+Search for equal or similar files and deduplicate them in the output. This comes with some overhead for the entry chunk, but can reduce file size effectively.  
+This doesn’t change the module semantics at all. Don’t expect to solve problems with multiple module instance. They won’t be one instance after deduplication.  
+Note: Don’t use it in watch mode. Only for production builds.
+
+
+#### Optional
+
+* webpack.optimize.OccurenceOrderPlugin
+* webpack.optimize.MinChunkSizePlugin
+* webpack.optimize.LimitChunkCountPlugin
 
 _webpack.config.js_
 
 ```javascript
-// define enviromental variable into script files
+// define enviromental variables into scripts
 config.plugins.push(new webpack.DefinePlugin({
   'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
   __CLIENT__: true,
@@ -942,70 +956,15 @@ config.plugins.push(new webpack.DefinePlugin({
   __DEVELOPMENT__: !production,
   __DEVTOOLS__: !production
 }));
-```
 
-[webpack.optimize.DedupePlugin](https://webpack.github.io/docs/list-of-plugins.html#dedupeplugin)  
-Search for equal or similar files and deduplicate them in the output. This comes with some overhead for the entry chunk, but can reduce file size effectively.  
-This doesn’t change the module semantics at all. Don’t expect to solve problems with multiple module instance. They won’t be one instance after deduplication.  
-Note: Don’t use it in watch mode. Only for production builds.
-
-_webpack.config.js_
-
-```javascript
 config.plugins = [];
 if (production) {
   config.plugins.push(new webpack.optimize.DedupePlugin());
-}
-``` 
-
-[extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin)  
-It moves every `require("style.css")` in entry chunks into a separate css output file. So your styles are no longer inlined into the javascript, but separate in a css bundle file (styles.css). If your total stylesheet volume is big, it will be faster because the stylesheet bundle is loaded in parallel to the javascript bundle.  
-
-```sh
-npm install extract-text-webpack-plugin --save-dev
-```
-_webpack.config.js_
-
-```javascript
-config.plugins = [];
-if (production) {
-  config.plugins.push(new ExtractTextPlugin('[name].css', {
-    allChunks: true
-  }));
-}
-```
-
-[webpack.optimize.UglifyJsPlugin](https://webpack.github.io/docs/list-of-plugins.html#uglifyjsplugin)  
-Minimize all JavaScript output of chunks. Loaders are switched into minimizing mode. You can pass an object containing UglifyJS options.
-
-_webpack.config.js_
-
-```javascript
-const webpack = require('webpack');
-config.plugins = [];
-if (production) {
-  config.plugins.push(new webpack.optimize.UglifyJsPlugin({
-    compressor: {
-      warnings: false
-    }
-  }));
-}
-```
-
-Other todo
-
-_webpack.config.js_
-
-```javascript
-config.plugins = [];
-if (production) {
   config.plugins.push(new webpack.optimize.OccurenceOrderPlugin());
-  config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({
-    maxChunks: 15
-  }));
-  config.plugins.push(new webpack.optimize.MinChunkSizePlugin({
-    minChunkSize: 10000
-  }));
+  config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
+  config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
+  config.plugins.push(new ExtractTextPlugin('[name].css', {allChunks: true}));
+  config.plugins.push(new webpack.optimize.UglifyJsPlugin({compressor: {warnings: false}}));
 }
 
 ```
@@ -1045,12 +1004,12 @@ Note that this will assume that folder `public` is `webroot`, thus this is Apach
 So. Let us try
 
 ```sh
-rm -rf public/assets/** && webpack-dev-server --config=./webpack.config.js --host=our.dev.host.tld --port=4000 --history-api-fallback -d --inline --hot
+rm -rf public/assets/** && webpack-dev-server --config=./webpack.config.js --host=nameformywebpacktest.our.dev.host.tld --port=4000 --history-api-fallback -d --inline --hot
 ```
 
 Something run. Our `index.html` returns `404` to all assets, cannot find anyrthing in `public/assets/`. Why? `public/assets/` directory is empty, right?
 
-Now try accessing <http://our.dev.host.tld:4000/site.css>. Gooody good.
+Now try accessing <http://nameformywebpacktest.our.dev.host.tld:4000/site.css>. Gooody good.
 
 Ignore the port for now. We still want the path to be `assets/file.ext`, because our `index.html` refers to resources using this path.  
 Update _webpack.config.js_, add `publicPath` key
@@ -1060,7 +1019,7 @@ Update _webpack.config.js_, add `publicPath` key
   output: {
     path: './public/assets',
     filename: '[name].js',
-    publicPath: production ? '//our.dev.host.tld/assets/' : 'http://our.dev.host.tld/assets/'
+    publicPath: production ? '//nameformywebpacktest.our.dev.host.tld/assets/' : 'http://nameformywebpacktest.our.dev.host.tld/assets/'
   },
 ...
 ```
@@ -1068,11 +1027,11 @@ Update _webpack.config.js_, add `publicPath` key
 _If you have used webpack-dev-server before, then you know that this can also be managed via `--content-base`_
 
 Kill `ctrl+c` devserver. Rerun again with the same command.  
-<http://our.dev.host.tld:4000/site.css> is 404  
-<http://our.dev.host.tld:4000/assets/site.css> is there
+<http://nameformywebpacktest.our.dev.host.tld:4000/site.css> is 404  
+<http://nameformywebpacktest.our.dev.host.tld:4000/assets/site.css> is there
 Just as we want it
 
-Now our `index.html` looks for assets under `http://our.dev.host.tld:80/assets/file.ext`, but it is served under `http://our.dev.host.tld:4000/assets/file.ext`. Let us proxy the ports, so that when assets is asked through port 80, give assets that are on port 4000.
+Now our `index.html` looks for assets under `http://nameformywebpacktest.our.dev.host.tld:80/assets/file.ext`, but it is served under `http://nameformywebpacktest.our.dev.host.tld:4000/assets/file.ext`. Let us proxy the ports, so that when assets is asked through port 80, give assets that are on port 4000.
 
 _public/.htaccess_
 ```
@@ -1081,7 +1040,7 @@ _public/.htaccess_
         Options -MultiViews
     </IfModule>
     RewriteEngine On
-    RewriteRule ^assets/(.+) http://our.dev.host.tld:4000/assets/$1 [P,L]
+    RewriteRule ^assets/(.+) http://nameformywebpacktest.our.dev.host.tld:4000/assets/$1 [P,L]
 </IfModule>
 ```
 
@@ -1138,7 +1097,7 @@ _public/.htaccess_
     </IfModule>
     RewriteEngine On
 #%!<TESTTAG>
-    RewriteRule ^assets/(.+) http://our.dev.host.tld:4000/assets/$1 [P,L]
+    RewriteRule ^assets/(.+) http://nameformywebpacktest.our.dev.host.tld:4000/assets/$1 [P,L]
 #%!</TESTTAG>
 </IfModule>
 
@@ -1151,7 +1110,7 @@ Whenever `NODE_ENV` is set to `production` _manage-htaccess_ disables anything b
 So test it now
 
 ```sh
-rm -rf public/assets/** && webpack-dev-server --config=./webpack.config.js --host=our.dev.host.tld --port=4000 --history-api-fallback -d --inline --hot
+rm -rf public/assets/** && webpack-dev-server --config=./webpack.config.js --host=nameformywebpacktest.our.dev.host.tld --port=4000 --history-api-fallback -d --inline --hot
 ```
 
 ```sh
@@ -1197,7 +1156,7 @@ It is hard to remember all the commands that need to be executed to run stuff. T
     "test": "echo \"Error: no test specified\" && exit 1",
     "run:clean": "rm -rf ./public/assets/**",
     "run:prod": "npm run run:clean && NODE_ENV=production webpack --progress",
-    "run:dev": "npm run run:clean && webpack-dev-server --config=./webpack.config.js --host=our.dev.host.tld --port=4000 --history-api-fallback -d --inline --hot",
+    "run:dev": "npm run run:clean && webpack-dev-server --config=./webpack.config.js --host=nameformywebpacktest.our.dev.host.tld --port=4000 --history-api-fallback -d --inline --hot",
     "screen:start": "npm run screen:stop && screen -S webpack-guide -d -m npm run run:dev",
     "screen:enter": "screen -r webpack-guide",
     "screen:stop": "screen -S webpack-guide -X quit 2>/dev/null || :"
@@ -1875,6 +1834,7 @@ const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const production = process.env.NODE_ENV === 'production';
+const testing = process.env.NODE_ENV === 'testing';
 
 const webpackHtaccess = require('manage-htaccess');
 webpackHtaccess(
@@ -1892,6 +1852,7 @@ webpackHtaccess(
 
 let config = {
   devtool: production ? 'source-map' : 'inline-source-map',
+  target: testing ? 'node' : 'web',
   context: __dirname,
   entry: {
     site: './src/site.js',
@@ -1900,7 +1861,7 @@ let config = {
   output: {
     path: './public/assets',
     filename: '[name].js',
-    publicPath: production ? '//warp.webpack.dev.warp.lv/assets/' : 'http://warp.webpack.dev.warp.lv/assets/'
+    publicPath: production ? '//nameformywebpacktest.our.dev.host.tld/assets/' : 'http://nameformywebpacktest.our.dev.host.tld/assets/'
   },
   resolve: {
     modulesDirectories: [
@@ -1976,13 +1937,11 @@ config.module = {
 config.plugins = [];
 
 config.plugins.push(new webpack.DefinePlugin({
+  'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
   __CLIENT__: true,
   __SERVER__: false,
   __DEVELOPMENT__: !production,
-  __DEVTOOLS__: !production,
-  'process.env': {
-    NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')
-  }
+  __DEVTOOLS__: !production
 }));
 
 if (production) {
@@ -2026,6 +1985,7 @@ config.postcss = function () {
 };
 
 module.exports = config;
+
 ```
 
 
