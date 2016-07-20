@@ -1219,125 +1219,115 @@ It is hard to remember all the commands that need to be executed to run stuff. T
 	* `npm run screen:stop` to stop dev-server in that seperate screen
 	* `npm run screen:enter` to attach to the running screen so you can inspect building errors (`ctrl+a` + `ctrl+d` to deattach without interrupting, `ctrl+a` + `:quit` to kill it while being within screen session).
 
+---
+# Babel
+---
 
------
-###### REVISED TILL HERE
+Until now `site.js` contained old javascript (except for Common.js `require()` that got handled by webpack loader). You will have to write ES2015 code with [stage-0](https://tc39.github.io/process-document/) features.
 
+## Babel core and presets
 
-## Babel
+[DOCS](https://babeljs.io/docs/setup/)
 
-### Webpack Babel
-
-This package allows transpiling JavaScript files using Babel and webpack.  
-[https://github.com/babel/babel-loader](https://github.com/babel/babel-loader)
-
-```sh
-npm install babel-loader --save-dev
-```
-
-### Babel core and presets
-
-[https://babeljs.io/docs/setup/](https://babeljs.io/docs/setup/)
+Install core
 
 ```sh
 npm install babel-core --save-dev
 ```
 
-Add preset
+Install presets
 
 ```sh
 npm install babel-preset-es2015 --save-dev
+npm install babel-preset-stage-0 --save-dev
 ```
 
-_.babelrc_
+Crete new file _.babelrc_ under master directory and fill it
 
 ```json
 {
-  "presets": ["es2015"]
+  "presets": ["es2015", "stage-0"]
 }
 ```
+
+## Webpack Babel
+
+This loader allows transpiling JavaScript files using Babel and webpack.  
+[babel-loader](https://github.com/babel/babel-loader)
+
+```sh
+npm install babel-loader --save-dev
+```
+
+So let us make subtle changes in `site.js`. For test use arrow function that is ES6 feature.
+
 _site.js_
 
 ```javascript
 'use strict';
-
 import './global.scss';
-
-const div = document.querySelector('.app');
-div.innerHTML = 'Hello JS';
-console.log('Hello JS!');
+const myArrowFunction = () => {
+  const div = document.querySelector('.app');
+  div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
+  console.log('Hello JS!');
+};
+myArrowFunction();
 ```
+
+Now specify loader for JavaScript files. Exclude `node_modules` as they *should be* ES5 already. Exclude `preflight.js` as it by it's role in the webapp should never contain anything ES5+ (ES3 recommended).
+
 _webpack.config.js_
 
 ```javascript
-'use strict';
-
-const path = require('path');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
-
-const production = process.env.NODE_ENV === 'production';
-const testing = process.env.NODE_ENV === 'testing';
-
-let config = {
-  entry: {
-    site: path.join(__dirname, 'src/site.js')
-  },
-  output: {
-    path: path.join(__dirname, 'public/assets'),
-    filename: '[name].js'       
-  },
-  resolve: {
-    modulesDirectories: [
-      'src',
-      'node_modules',
-      'bower_components'
-    ],
-    root: path.resolve('./src/')
-  }
-}
-
-config.module = {
-  loaders: [
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        loader: production ? 'babel-loader' : 'react-hot!babel-loader'
-      },
-      {
-        test: /\.(scss)$/,
-        loader: production
-        ? ExtractTextPlugin.extract('css-loader?sourceMap!postcss-loader!sass-loader?sourceMap')
-        : 'style-loader!css-loader?sourceMap!postcss-loader!sass-loader?sourceMap'
-      },
-      {
-        test: /\.(css)$/,
-        loader: production
-          ? ExtractTextPlugin.extract('css-loader?sourceMap!postcss-loader')
-          : 'style-loader!css-loader?sourceMap!postcss-loader'
-      }
-  ]
-}
-
-config.plugins = [
-  new ExtractTextPlugin('[name].css', { allChunks: true })
-];
-
-module.exports = config;
+    {
+      test: /\.js$/,
+      exclude: [/node_modules/, /preflight\.js$/],
+      loader: 'babel-loader'
+    },
 ```
 
+Build it. Inspect how array function got compiled to old JavaScript, so that oldish browsers do what they are told to.
 
-### Babel polyfill
+```javascript
+...
+	var myArrowFunction = function myArrowFunction() {
+	  var div = document.querySelector('.app');
+	  div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
+	  console.log('Hello JS!');
+	};
+	myArrowFunction();
+...
+```
 
-[https://babeljs.io/docs/usage/polyfill/](https://babeljs.io/docs/usage/polyfill/)
+## Babel polyfill
+
+As a side note - we need also polyfills. There are so many polyfills out there and methods to polyfill (user agent based), but let us use one supplied by Babel.
+
+[DOCS](https://babeljs.io/docs/usage/polyfill/)
 
 ```sh
 npm install babel-polyfill --save-dev
 ```
+
 _site.js_
 
 ```javascript
+'use strict';
 import 'babel-polyfill';
+import './global.scss';
+const myArrowFunction = () => {
+  const div = document.querySelector('.app');
+  div.innerHTML = '<h1>Hello JS</h1><p>Lorem ipsum.</p>';
+  div.classList.add('some-class');
+  console.log('Hello JS!');
+};
+myArrowFunction();
 ```
+
+Run and inspect `public/site.js`. [Polyfills everywhere](https://cdn.meme.am/instances/500x/65651431.jpg).
+
+-----
+###### REVISED TILL HERE
 
 ## ESLint
 
