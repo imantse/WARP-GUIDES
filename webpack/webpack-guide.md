@@ -1,21 +1,30 @@
 # WEBPACK GUIDE
 
+### About
+
 This is a quick, on demand and yet unedited/untested guide how to set up [webpack](https://webpack.github.io) build system (in the moment you drop [gulp](http://gulpjs.com)).
+
+Put together by @kroko for the new colleagues that see webpack for the first time.  
+While doing first edits I realised that also notes should be made for some basic npm stuff as the reality is - there are people who haven't used any building tools or even npm before (not-Node.js backend guys (PHP/ROR/...) leaning towards fullstack of frontend). So this assumes absolute entry level knowledge in terms of packing code.
+
+### Steps
 
 Firstly it uses simple SCSS, plain JavaScript ES5. Then drops in loaders/plugins for CSS and Javascript ES6/ES2015 (PostCSS + plugins, Babel, ESLint a.o.). Finally it adds React.js in the mix.
 
-webpack 1.13.x-1.14.x assumed.
+### Assumtions
 
-Put together by @kroko for the new colleagues that see webpack for the first time.  
-While doing first edits I realised that also notes should be made for some basic npm stuff as the reality is - there are people who haven't used any building tools or even npm before (which isn't bad thing if you haven't coded JavaScript and/or do backend (PHP/ROR/...) stuff only). So this assumes absolute entry level knowledge in terms of packing code.
+* webpack 1.13.x-1.14.x.
+* Examples are for frontend only. Guide assumes Apache2 server (our devserver pool) for which a virtual host is configured that the `public` directory that you will see later is the `DocumentRoot` of that vhost. Just create new devsite via `warpdevsite nameformywebpacktest && cdd nameformywebpacktest ` and you're all set. If you want to try this outside our devsserver with small modifications it will also work if serving stuff via NGINX (proxy in `.htaccess` that I'm going to talk about then should go in conf) as well as Node.js (simple `http` + `node-static` or full Express.js).
+
+### Your task
 
 * clone it
 * read it
 * learn it
-* create new project in our server and test it step by step
-* there are things that are left out (especially server proxy config for `webpack-dev-server`, so ask if you don't see connection from some A to B)
-* watch out for errors (lot of stuff here is untested, as I don't have such not-real-world (barebone) code anywhere) as well as things that simply do not work anymore, because there is better way to do it (webpack gets updates, you know...)
-* add, commit and push fixes/changes/additions to this repo so that we can make this the ultimate webpack guide.
+* create new project in our server `warpdevsite` and test it step by step
+* there are things that are left out, so ask if you don't see how to get from A to B
+* watch out for errors (some stuff here is untested + things that simply do not work anymore, because there is better way to do it and/or webpack gets updates, you know...)
+* add, commit and push fixes/changes/additions to this repo so that we can make this the ultimate beginners webpack + npm guide.
 
 ---
 # PREFLIGHT
@@ -858,39 +867,9 @@ Run webpack and inspect `public/assets/` directory and `public/assets/site.css`.
 rm -rf public/assets/** && webpack --progress
 ```
 
------
-###### REVISED TILL HERE
+## Webpack GLSL shader loader
 
-
-### Webpack webpack-dev-server
-
-[https://github.com/webpack/webpack-dev-server](https://github.com/webpack/webpack-dev-server)
-
-```sh
-npm i -D webpack-dev-server
-```
-
-### Webpack style-loader
-
-We have alreaddy installed this. Adds CSS to the DOM by injecting a `<style>` tag. Use with webpack-dev-server.
-[https://github.com/webpack/style-loader](https://github.com/webpack/style-loader)
-
-```sh
-npm i -D style-loader
-```
-
-### manage-htaccess
-
-[https://github.com/WARP-LAB/manage-htaccess](https://github.com/WARP-LAB/manage-htaccess)
-
-```sh
-npm install manage-htaccess --save-dev
-```
-
-
-
-
-### Webpack GLSL loader
+We write our shaders in seperate files.
 
 [phaser-glsl-loader](phaser-glsl-loader)
 
@@ -904,7 +883,7 @@ _webpack.config.js_
     },
     ...
 ```
-_site.js_
+_example.js_
 
 ```javascript
   shaderProg = new THREE.ShaderMaterial({
@@ -914,21 +893,39 @@ _site.js_
   });
 ```
 
+
+## Other loaders
+
 ### Webpack expose loader
 
-[expose loader](https://github.com/webpack/expose-loader)  
+Just for reference
+
 When wanting to put things in global namespace
+
+[expose loader](https://github.com/webpack/expose-loader)  
 
 ```
 npm install expose-loader --save-dev
 ```
 
-### Webpack 
+### Webpack script loader
+
+Just for reference
 
 [script-loader](https://github.com/webpack/script-loader)  
 
 ```
 npm install script-loader --save-dev
+```
+
+### Webpack style-loader
+
+Just for reference. We have alreaddy installed this.  
+Adds CSS to the DOM by injecting a `<style>` tag. Use with webpack-dev-server.
+[https://github.com/webpack/style-loader](https://github.com/webpack/style-loader)
+
+```sh
+npm i -D style-loader
 ```
 
 ### Webpack plugins, other
@@ -949,8 +946,22 @@ config.plugins.push(new webpack.DefinePlugin({
 }));
 ```
 
+[webpack.optimize.DedupePlugin](https://webpack.github.io/docs/list-of-plugins.html#dedupeplugin)  
+Search for equal or similar files and deduplicate them in the output. This comes with some overhead for the entry chunk, but can reduce file size effectively.  
+This doesn’t change the module semantics at all. Don’t expect to solve problems with multiple module instance. They won’t be one instance after deduplication.  
+Note: Don’t use it in watch mode. Only for production builds.
+
+_webpack.config.js_
+
+```javascript
+config.plugins = [];
+if (production) {
+  config.plugins.push(new webpack.optimize.DedupePlugin());
+}
+``` 
+
 [extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin)  
-It moves every require("style.css") in entry chunks into a separate css output file. So your styles are no longer inlined into the javascript, but separate in a css bundle file (styles.css). If your total stylesheet volume is big, it will be faster because the stylesheet bundle is loaded in parallel to the javascript bundle.  
+It moves every `require("style.css")` in entry chunks into a separate css output file. So your styles are no longer inlined into the javascript, but separate in a css bundle file (styles.css). If your total stylesheet volume is big, it will be faster because the stylesheet bundle is loaded in parallel to the javascript bundle.  
 
 ```sh
 npm install extract-text-webpack-plugin --save-dev
@@ -983,20 +994,6 @@ if (production) {
 }
 ```
 
-[webpack.optimize.DedupePlugin](https://webpack.github.io/docs/list-of-plugins.html#dedupeplugin)  
-Search for equal or similar files and deduplicate them in the output. This comes with some overhead for the entry chunk, but can reduce file size effectively.  
-This doesn’t change the module semantics at all. Don’t expect to solve problems with multiple module instance. They won’t be one instance after deduplication.  
-Note: Don’t use it in watch mode. Only for production builds.
-
-_webpack.config.js_
-
-```javascript
-config.plugins = [];
-if (production) {
-  config.plugins.push(new webpack.optimize.DedupePlugin());
-}
-``` 
-
 Other todo
 
 _webpack.config.js_
@@ -1014,6 +1011,216 @@ if (production) {
 }
 
 ```
+
+---
+# Webpack dev server
+---
+
+We use hot reloading always. This is something like `watch` in gulp which we abused. But this is better out-of-box, especially for React (hot reloading while keeping state). If you haven't used hot watching/hot reloading before then strap in, then read manual.
+
+## Preflight
+
+### Webpack webpack-dev-server
+
+Documentation  
+[webpack-dev-server](https://github.com/webpack/webpack-dev-server)
+
+Install dev server
+
+```sh
+npm i -D webpack-dev-server
+```
+
+### manage-htaccess
+
+We will need port proxying for this. Instead of proxying within Apache2 vhost (only suitable for dev & small loads) on NGINX proxy (ze best!), this will give us fast proxy on/off in case of Apache whithin `.htaccess`  
+[manage-htaccess](https://github.com/WARP-LAB/manage-htaccess)
+
+```sh
+npm install manage-htaccess --save-dev
+```
+
+## Basic setup
+
+Note that this will assume that folder `public` is `webroot`, thus this is Apache2. For non-webroot locations this works also (the proxying rules and `publicPath` that you will see later have to be set up bit different). For Node.js served stuff (`index.html` is served via `node-static` or Express) altogether it is again different.
+
+So. Let us try
+
+```sh
+rm -rf public/assets/** && webpack-dev-server --config=./webpack.config.js --host=our.dev.host.tld --port=4000 --history-api-fallback -d --inline --hot
+```
+
+Something run. Our `index.html` returns `404` to all assets, cannot find anyrthing in `public/assets/`. Why? `public/assets/` directory is empty, right?
+
+Now try accessing <http://our.dev.host.tld:4000/site.css>. Gooody good.
+
+Ignore the port for now. We still want the path to be `assets/file.ext`, because our `index.html` refers to resources using this path.  
+Update _webpack.config.js_, add `publicPath` key
+
+```javascript
+...
+  output: {
+    path: './public/assets',
+    filename: '[name].js',
+    publicPath: production ? '//our.dev.host.tld/assets/' : 'http://our.dev.host.tld/assets/'
+  },
+...
+```
+
+_If you have used webpack-dev-server before, then you know that this can also be managed via `--content-base`_
+
+Kill `ctrl+c` devserver. Rerun again with the same command.  
+<http://our.dev.host.tld:4000/site.css> is 404  
+<http://our.dev.host.tld:4000/assets/site.css> is there
+Just as we want it
+
+Now our `index.html` looks for assets under `http://our.dev.host.tld:80/assets/file.ext`, but it is served under `http://our.dev.host.tld:4000/assets/file.ext`. Let us proxy the ports, so that when assets is asked through port 80, give assets that are on port 4000.
+
+_public/.htaccess_
+```
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews
+    </IfModule>
+    RewriteEngine On
+    RewriteRule ^assets/(.+) http://our.dev.host.tld:4000/assets/$1 [P,L]
+</IfModule>
+```
+
+Kill `ctrl+c` devserver. Rerun again with the same command. Open up our page. Should contain `Hello JS` and your beautiful backround images.
+
+Fire up _global.scss_ and change height of app div, observe browser.
+
+```scss
+...
+  height: 200px;
+...
+```
+Now kill `ctrl+c` devserver. 
+
+## Ping pong
+
+Rerun statically
+
+```sh
+rm -rf public/assets/** && webpack --progress
+```
+
+:( page does not work any more, because now files are back in `public/assets`, 4000 port is empty. So we need to be able to turn the proxy on/off in `.htaccess` based on whether we run dynamically hot relaoding or run _statically_.
+
+Add `manage-htaccess` in the mix.
+
+_webpack.config.js_
+
+```javascript
+...
+const production = process.env.NODE_ENV === 'production';
+
+const webpackHtaccess = require('manage-htaccess');
+webpackHtaccess(
+  [
+    {
+      tag: 'TESTTAG',
+      enabled: !production
+    }
+  ],
+  path.join(__dirname, 'public/.htaccess')
+);
+...
+```
+
+Wrap our proxy within tag
+
+_public/.htaccess_
+
+```
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews
+    </IfModule>
+    RewriteEngine On
+#%!<TESTTAG>
+    RewriteRule ^assets/(.+) http://our.dev.host.tld:4000/assets/$1 [P,L]
+#%!</TESTTAG>
+</IfModule>
+
+```
+
+How it works:
+Whenever `NODE_ENV` is set to `production` _manage-htaccess_ disables anything between the specified tags (there can be multiple occurances as well as multiple tags) in `.htaccess` file (TESTTAG state is `!production === false`). So our proxy RewriteRule is off. If `NODE_ENV` is not `production` (thus assuming development, whlist actually there should also be staging settings), then anything between the tags is enabled (TESTTAG state is `!production === true`).
+
+
+So test it now
+
+```sh
+rm -rf public/assets/** && webpack-dev-server --config=./webpack.config.js --host=our.dev.host.tld --port=4000 --history-api-fallback -d --inline --hot
+```
+
+```sh
+rm -rf public/assets/** && NODE_ENV=production webpack --progress
+```
+
+---
+# Use npm `scripts`!
+---
+
+It is hard to remember all the commands that need to be executed to run stuff. Therefore always make shortcuts. IMHO `package.json` scripts section should reflect what this package can do!
+
+```json
+{
+  "name": "webpack-guide",
+  "version": "0.0.0",
+  "description": "webpack guide for WARP coders",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "run:clean": "rm -rf ./public/assets/**",
+    "run:prod": "npm run run:clean && NODE_ENV=production webpack --progress",
+    "run:dev": "npm run run:clean && webpack-dev-server --config=./webpack.config.js --host=our.dev.host.tld --port=4000 --history-api-fallback -d --inline --hot",
+    "screen:start": "npm run screen:stop && screen -S webpack-guide -d -m npm run run:dev",
+    "screen:enter": "screen -r webpack-guide",
+    "screen:stop": "screen -S webpack-guide -X quit 2>/dev/null || :"
+  },
+  "keywords": [
+    "webpack"
+  ],
+  "author": "kroko",
+  "license": "MIT",
+  "devDependencies": {
+    "autoprefixer": "6.3.7",
+    "css-loader": "0.23.1",
+    "css-mqpacker": "5.0.1",
+    "cssnano": "3.7.3",
+    "extract-text-webpack-plugin": "1.0.1",
+    "file-loader": "0.9.0",
+    "image-webpack-loader": "2.0.0",
+    "manage-htaccess": "1.0.0",
+    "node-sass": "3.8.0",
+    "normalize.css": "4.2.0",
+    "postcss-loader": "0.9.1",
+    "resolve-url-loader": "1.6.0",
+    "sass-loader": "4.0.0",
+    "style-loader": "0.13.1",
+    "url-loader": "0.5.7",
+    "webpack": "1.13.1",
+    "webpack-dev-server": "1.14.1"
+  }
+}
+
+```
+
+* `npm run run:prod` to run production
+
+* `npm run run:dev ` to run dev-server
+
+	* `npm run sreen:start` to start dev-server in a seperate screen  
+	* `npm run screen:stop` to stop dev-server in that seperate screen
+	* `npm run screen:enter` to attach to the running screen so you can inspect building errors (`ctrl+a` + `ctrl+d` to deattach without interrupting, `ctrl+a` + `:quit` to kill it while being within screen session).
+
+
+-----
+###### REVISED TILL HERE
+
 
 ## Babel
 
