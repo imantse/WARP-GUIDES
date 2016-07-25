@@ -452,7 +452,14 @@ config.postcss = function () {
   // we minimise CSS always as we have source maps, but for this example let us do conditional
   if (production) {
     postPluginConf.push(
-      require('cssnano')({discardComments: {removeAll: true}, zindex: false})
+      require('cssnano')({
+        discardComments: {
+          removeAll: true
+        },
+        autoprefixer: false,
+        reduceIdents: false,
+        zindex: false
+      })
     );
   }
   return postPluginConf;
@@ -1041,6 +1048,7 @@ Just as we want it
 Now our `index.html` looks for assets under `http://nameformywebpacktest.our.dev.host.tld:80/assets/file.ext`, but it is served under `http://nameformywebpacktest.our.dev.host.tld:4000/assets/file.ext`. Let us proxy the ports, so that when assets is asked through port 80, give assets that are on port 4000.
 
 _public/.htaccess_
+
 ```
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
@@ -1145,6 +1153,34 @@ _webpack.config.js_
         : 'style-loader!css-loader?sourceMap!postcss-loader'
     },
 ...
+```
+
+## Make SCSS environment aware
+
+Our SCSS should also know what ebvironment it is built for.
+
+_webpack.config.js_
+
+```javascript
+...
+// make environment available as sass variable in SCSS
+config.sassLoader = {
+  data: `$env: ${process.env.NODE_ENV};`
+};
+...
+```
+
+Usage example
+
+_whatever.scss_
+
+
+```scss
+  @if $env == 'production' {
+    background-color: transparent;
+  } @else {
+    background-color: blue;
+  }
 ```
 
 ---
@@ -2019,6 +2055,10 @@ config.module = {
   ]
 };
 
+config.sassLoader = {
+  data: `$env: ${process.env.NODE_ENV};`
+};
+
 // ----------------
 // PLUGINS
 
@@ -2068,13 +2108,16 @@ config.postcss = function () {
   postPluginConf.push(
     require('css-mqpacker')()
   );
-  // we minimise CSS always as we have source maps, but for this example let us do conditional
-  if (production) {
-    postPluginConf.push(
-      require('cssnano')({discardComments: {removeAll: true}, zindex: false})
-      // ["zindex", "normalizeUrl", "discardUnused", "mergeIdents", "reduceIdents"]
-    );
-  }
+  postPluginConf.push(
+	require('cssnano')({
+	  discardComments: {
+	    removeAll: true
+	  },
+	  autoprefixer: false,
+	  reduceIdents: false,
+	  zindex: false
+	})
+  );
   return postPluginConf;
 };
 
