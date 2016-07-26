@@ -218,6 +218,9 @@ For JavaScript minimisation we can use webpack built in plugin which actually us
 Plugin documentation  
 [webpack.optimize.UglifyJsPlugin](https://webpack.github.io/docs/list-of-plugins.html#uglifyjsplugin)
 
+Discussion on options  
+<https://github.com/webpack/webpack/issues/1205>
+
 _webpack.config.js_
 
 ```javascript
@@ -496,7 +499,7 @@ We add it as a module, so prefix it `~`. So now you know what `resolve: { module
 
 Add to our SCSS
 
-_site.scss_
+_src/global.scss_
 
 ```scss
 @import "~normalize.css";
@@ -606,7 +609,7 @@ npm install resolve-url-loader --save-dev
 
 Add image to our SCSS
 
-_site.scss_
+_src/global.scss_
 
 ```scss
 @import "~normalize.css";
@@ -691,7 +694,7 @@ This process is expensive. In development we do not care about file size as we l
 
 Convert TTF/OTF to all webwonts (WOFF, WOFF2, EOT, SVG) in building process.
 
-Ask.
+Font squirrel online generator is good enough [Font Squirrel Generator](https://www.fontsquirrel.com/tools/webfont-generator).
 
 ## Fonts - webfont packing & loading
 
@@ -962,6 +965,7 @@ Note: Don’t use it in watch mode. Only for production builds.
 _webpack.config.js_
 
 ```javascript
+...
 // define environmental variables into scripts
 config.plugins.push(new webpack.DefinePlugin({
   'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
@@ -978,9 +982,21 @@ if (production) {
   config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
   config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
   config.plugins.push(new ExtractTextPlugin('[name].css', {allChunks: true}));
-  config.plugins.push(new webpack.optimize.UglifyJsPlugin({compressor: {warnings: false}}));
+  config.plugins.push(new webpack.optimize.UglifyJsPlugin(
+    {
+      compressor: {
+        warnings: false,
+        drop_console: true
+      },
+      output: {
+        comments: false
+      },
+      debug: false,
+      sourceMap: false
+    }
+  ));
 }
-
+...
 ```
 
 ---
@@ -2078,7 +2094,19 @@ if (production) {
   config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}));
   config.plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000}));
   config.plugins.push(new ExtractTextPlugin('[name].css', {allChunks: true}));
-  config.plugins.push(new webpack.optimize.UglifyJsPlugin({compressor: {warnings: false}}));
+  config.plugins.push(new webpack.optimize.UglifyJsPlugin(
+    {
+      compressor: {
+        warnings: false,
+        drop_console: true
+      },
+      output: {
+        comments: false
+      },
+      debug: false,
+      sourceMap: false
+    }
+  ));
 }
 
 // ----------------
