@@ -1674,7 +1674,7 @@ Add linting also to your SCSS.
 [stylelint-webpack-plugin](http://stylelint.io/user-guide/complementary-tools/#build-tool-plugins)
 
 ```sh
-npm install stylelint-webpack-plugin --save-dev
+npm install stylelint-webpack-plugin stylelint-scss --save-dev
 ```
 
 _This webpack plugin will also install `stylelint` dependency. Might not be the latest, but whatever._
@@ -1683,10 +1683,14 @@ Create _.stylelintrc_ and fill in some general values. See [documentation](https
 
 ```json
 {
+  "plugins": [
+    "stylelint-scss"
+  ],
   "rules": {
     "block-no-empty": null,
     "color-no-invalid-hex": true,
     "comment-empty-line-before": [ "always", {
+      "except": ["first-nested"],
       "ignore": ["stylelint-commands", "between-comments"],
     } ],
     "declaration-colon-space-after": "always",
@@ -1695,11 +1699,16 @@ Create _.stylelintrc_ and fill in some general values. See [documentation](https
       "severity": "warning"
     }],
     "max-empty-lines": 2,
+    "no-empty-source": false,
+    "no-invalid-double-slash-comments": false,
     "rule-nested-empty-line-before": [ "always", {
       "except": ["first-nested"],
       "ignore": ["after-comment"],
     } ],
-    "unit-whitelist": ["px", "em", "rem", "%", "s"]
+    "unit-no-unknown": true,
+    "unit-whitelist": ["px", "em", "rem", "%", "s"],
+
+    "scss/double-slash-comment-whitespace-inside": "always"
   }
 }
 ```
