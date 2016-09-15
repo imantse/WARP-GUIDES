@@ -1390,7 +1390,7 @@ npm i -D babel-eslint eslint-plugin-babel
 Install ESLint plugins
 
 ```sh
-npm i -D eslint-plugin-promise eslint-plugin-standard
+npm i -D eslint-plugin-promise eslint-plugin-standard eslint-plugin-import
 ```
 
 Install config we will be using
@@ -1418,6 +1418,8 @@ Crete new file _.eslintrc_ under master directory and fill it
     "babel/object-curly-spacing": 1,
     "babel/object-shorthand": 1,
     "babel/arrow-parens": 1,
+    
+    "import/extensions": [0, { "js": "always", "json": "always" }]
   }
 }
 
@@ -1797,6 +1799,7 @@ Reconfigure _.eslintrc_
   "plugins": [
     "standard",
     "babel",
+    "import",
     "react"
   ],
   "parser": "babel-eslint",
@@ -1813,7 +1816,8 @@ Reconfigure _.eslintrc_
     "babel/object-shorthand": 1,
     "babel/arrow-parens": 1,
 
-    "react/display-name": [2, {"ignoreTranspilerName": false}],
+    "import/extensions": [0, { "js": "always", "json": "always" }],
+
     "react/jsx-boolean-value": [1, "never"],
     "react/jsx-closing-bracket-location": [1, {"location": "tag-aligned"}],
     "react/jsx-curly-spacing": [2, "never"],
@@ -1822,23 +1826,24 @@ Reconfigure _.eslintrc_
     "react/jsx-no-duplicate-props": [2, {"ignoreCase": false}],
     "react/jsx-no-literals": 1,
     "react/jsx-no-undef": 2,
-
+    "react/jsx-wrap-multilines": 2,
     "react/jsx-uses-react": 1,
     "react/jsx-uses-vars": 2,
+
+    "react/display-name": [2, {"ignoreTranspilerName": false}],
     "react/no-danger": 1,
     "react/no-multi-comp": 1,
     "react/no-unknown-property": 2,
     "react/prop-types": 2,
     "react/react-in-jsx-scope": 1,
-    "react/require-extension": 2,
+    "react/require-extension": "off",
     "react/self-closing-comp": 2,
     "react/sort-comp": 1,
-    "react/wrap-multilines": 2,
 
     "react/no-set-state": 0,
 
     "react/no-did-mount-set-state": 1,
-    "react/no-did-update-set-state": 1,
+    "react/no-did-update-set-state": 1
   }
 }
 ```
