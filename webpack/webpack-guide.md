@@ -1506,7 +1506,10 @@ Do same with `npm run run:dev` and fix error on the fly.
 
 ### Atom
 
-To do
+```sh
+apm install linter
+apm install linter-eslint
+```
 
 ### Sublime Text 3 - ESLint
 
