@@ -1412,19 +1412,18 @@ Crete new file _.eslintrc_ under master directory and fill it
     "semi": [2, "always"],
     "no-extra-semi": 2,
     "semi-spacing": [2, { "before": false, "after": true }],
+    "generator-star-spacing": 1,
+    "object-shorthand": 1,
+    "arrow-parens": 1,
 
-    "babel/generator-star-spacing": 1,
     "babel/new-cap": 1,
     "babel/object-curly-spacing": 1,
-    "babel/object-shorthand": 1,
-    "babel/arrow-parens": 1,
     
     "import/extensions": [0, { "js": "always", "json": "always" }]
   }
 }
 
 ```
-
 
 Crete new file _.eslintignore_ under master directory and fill it
 
@@ -1810,14 +1809,14 @@ Reconfigure _.eslintrc_
     "semi": [2, "always"],
     "no-extra-semi": 2,
     "semi-spacing": [2, { "before": false, "after": true }],
+    "generator-star-spacing": 1,
+    "object-shorthand": 1,
+    "arrow-parens": 1,
 
     "jsx-quotes": [2, "prefer-double"],
 
-    "babel/generator-star-spacing": 1,
     "babel/new-cap": 1,
     "babel/object-curly-spacing": 1,
-    "babel/object-shorthand": 1,
-    "babel/arrow-parens": 1,
 
     "import/extensions": [0, { "js": "always", "json": "always" }],
 
